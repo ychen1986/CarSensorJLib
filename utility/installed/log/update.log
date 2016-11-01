@@ -1,0 +1,12 @@
+Update Start ===================================>
+--2016-02-23 14:35:32--  http://www.ht.sfc.keio.ac.jp/~yin/htCarSensor/Distribution/CarSensor20160219.tar.gz
+Resolving www.ht.sfc.keio.ac.jp (www.ht.sfc.keio.ac.jp)... 133.27.170.5
+Connecting to www.ht.sfc.keio.ac.jp (www.ht.sfc.keio.ac.jp)|133.27.170.5|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 557 [application/x-gzip]
+Saving to: `/tmp/update.gz.tar'
+
+     0K                                                       100% 12.3M=0s
+
+2016-02-23 14:35:33 (12.3 MB/s) - `/tmp/update.gz.tar' saved [557/557]
+

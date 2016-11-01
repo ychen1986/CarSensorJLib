@@ -1,0 +1,256 @@
+/**
+ * Copyright (C) 2015  @author Yin Chen 
+ * Keio University, Japan
+ */
+
+/**
+ * This class provides a static method to obtain the phone number 
+ * of the SIM card. It is implemented by sending "AT+CNUM" to 
+ * the serial port "/dev/ttyACM0" and parsing the response results.
+ * Usage:  	
+ * 	
+ * try {
+ *				phoneNumber = SIMCard.getPhoneNumber();
+ * } catch (Exception e) {
+ *				// TODO Auto-generated catch block
+ *				e.printStackTrace();
+ * }
+ * System.out.println("[SIMTest] " + phoneNumber);	
+ *
+ *	The serial port, baud rate and debug parameters can be spercified.
+ *	See more in getPhoneNumber(String _portName, int _baudRate, boolean _debug) 
+ *  
+ */
+
+package jp.ac.keio.sfc.ht.carsensor;
+
+import gnu.io.CommPortIdentifier;
+import gnu.io.NoSuchPortException;
+import gnu.io.PortInUseException;
+import gnu.io.SerialPort;
+import gnu.io.SerialPortEvent;
+import gnu.io.SerialPortEventListener;
+import gnu.io.UnsupportedCommOperationException;
+
+import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.util.Enumeration;
+import java.util.TooManyListenersException;
+
+public class SIMCard implements SerialPortEventListener, Closeable {
+
+	private String portName;
+	private int baudRate;
+
+	private String phoneNumber;
+	private InputStream in;
+	SerialPort serialPort;
+	private OutputStream out;
+	static private boolean debug = false;
+
+	private SIMCard(String _portName, int _baudRate)
+			throws UnsupportedCommOperationException, NoSuchPortException,
+			PortInUseException, IOException, TooManyListenersException {
+
+		this.portName = _portName;
+		this.baudRate = _baudRate;
+		serialPort = openSerialPort(1000);
+
+		in = serialPort.getInputStream();
+		out = serialPort.getOutputStream();
+
+		// add serial port event listener
+		serialPort.addEventListener(this);
+		serialPort.notifyOnDataAvailable(true);
+		// Send AT commands to read sim information
+
+	}
+
+	private SerialPort openSerialPort(int timeout)
+			throws UnsupportedCommOperationException, NoSuchPortException,
+			PortInUseException, IOException {
+		if (debug) {
+			System.out.println("[SIMCard]: Open serial port...");
+		}
+
+		System.setProperty("gnu.io.rxtx.SerialPorts", portName);
+		@SuppressWarnings("rawtypes")
+		Enumeration portList = CommPortIdentifier.getPortIdentifiers();
+		// CommPortIdentifier id = null;
+		while (portList.hasMoreElements()) {
+			System.out.println(portList.nextElement());
+		}
+
+		CommPortIdentifier portId = CommPortIdentifier
+				.getPortIdentifier(portName);
+		SerialPort port = (SerialPort) portId.open(this.getClass().getName(),
+				timeout);
+		port.setSerialPortParams(baudRate, SerialPort.DATABITS_8,
+				SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+		port.setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
+		return port;
+	}
+
+	public static String getPhoneNumber(String _portName, int _baudRate,
+			boolean _debug) throws Exception {
+		debug = _debug;
+		SIMCard sim = null;
+		String phoneNumber = null;
+		try {
+			sim = new SIMCard(_portName, _baudRate);
+			sim.getSIMInfo();
+			Thread.sleep(1000);
+			phoneNumber = sim.phoneNumber;
+		} catch (UnsupportedCommOperationException | NoSuchPortException
+				| PortInUseException | IOException | TooManyListenersException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (sim != null)
+				sim.close();
+		}
+
+		if (phoneNumber == null) {
+			Exception e = new Exception("Phone number is not obtained.");
+			throw e;
+		}
+
+		return phoneNumber;
+	}
+
+	public static String getPhoneNumber(boolean _debug) throws Exception {
+		return getPhoneNumber("/dev/ttyACM0", 115200, _debug);
+	}
+
+	public static String getPhoneNumber() throws Exception {
+		return getPhoneNumber("/dev/ttyACM0", 115200, false);
+	}
+
+	@Override
+	public void close() {
+		if (debug) {
+			System.out.println("[SIMCard] Closing SIM Card...");
+		}
+		try {
+			if (debug) {
+				System.out.println("[SIMCard] Closing IO Stream...");
+			}
+			in.close();
+			out.close();
+			if (debug) {
+				System.out.println("[SIMCard] Done...\n"
+						+ "[SIMCard] Removing event listener...");
+			}
+			serialPort.removeEventListener();
+			if (debug) {
+				System.out.println("[SIMCard] Done...\n"
+						+ "[SIMCard] Closing serial port...");
+			}
+			// serialPort.close();
+			if (debug) {
+				System.out.println("[SIMCard]: Done");
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (debug) {
+			System.out.println("[SIMCard]: Done");
+		}
+
+	}
+
+	void getSIMInfo() {
+
+		sendCMD(GET_PHONE_NUMBER);
+
+	}
+
+	void sendCMD(String cmd) {
+		if (debug) {
+			System.out.println("[SIMCard]: Send Command " + cmd);
+		}
+
+		try {
+			out.write((cmd + "\r").getBytes());
+			out.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void serialEvent(SerialPortEvent ev) {
+		String s = "";
+		BufferedReader br = null;
+		if (debug) {
+			System.out
+					.println("[SIMCard]: Serial port event: " + ev.toString());
+		}
+
+		switch (ev.getEventType()) {
+		case SerialPortEvent.DATA_AVAILABLE:
+			try {
+				br = new BufferedReader(new InputStreamReader(in));
+				while ((s = br.readLine()) != null) {
+					if (debug) {
+						System.out.println("[SIMCard]: Serial resonse " + s);
+					}
+
+					String[] resp = s.split(",", 3);
+					if (debug) {
+						System.out.println("[SIMCard]: Response split");
+						for (String i : resp) {
+							System.out.println(i);
+						}
+					}
+
+					switch (resp[0]) {
+					case PHONE_NUMBER + ": \"\"":
+						String[] numSentence = resp[1].split("\"", 3);
+						phoneNumber = numSentence[1];
+						if (debug) {
+							System.out
+									.println("[SIMCard]: Number sentence split");
+							for (String i : numSentence) {
+								System.out.println(i);
+							}
+							System.out
+									.println("[SIMCard]: Phone number obtained "
+											+ phoneNumber);
+						}
+
+						break;
+					default:
+						break;
+					}
+				}
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			}
+		}
+		return;
+
+	}
+
+	final static private String AT_PREFIX = "AT";
+	final static private String PHONE_NUMBER = "+CNUM";
+	final static private String GET_PHONE_NUMBER = AT_PREFIX + PHONE_NUMBER;
+
+}

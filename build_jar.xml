@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project htCarSensor2 with Jar-in-Jar Loader">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="/Users/chenyin/Documents/workspace/htCarSensor2/Dist/CarSensor.jar">
+            <manifest>
+                <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
+                <attribute name="Rsrc-Main-Class" value="Main"/>
+                <attribute name="Class-Path" value="."/>
+                <attribute name="Rsrc-Class-Path" value="./ JSoxLib.jar httpclient-4.2.3.jar joda-time-2.1.jar jxmpp-core-0.4.1.jar jxmpp-util-cache-0.5.0-alpha2.jar minidns-0.1.3.jar RXTXcomm.jar simple-xml-2.7.1.jar smack-android-4.1.0-javadoc.jar smack-android-4.1.0-sources.jar smack-android-4.1.0.jar smack-android-extensions-4.1.0-javadoc.jar smack-android-extensions-4.1.0-sources.jar smack-android-extensions-4.1.0.jar smack-bosh-4.1.0-javadoc.jar smack-bosh-4.1.0-sources.jar smack-bosh-4.1.0.jar smack-compression-jzlib-4.1.0-javadoc.jar smack-compression-jzlib-4.1.0-sources.jar smack-compression-jzlib-4.1.0.jar smack-core-4.1.0-javadoc.jar smack-core-4.1.0-sources.jar smack-core-4.1.0.jar smack-debug-4.1.0-javadoc.jar smack-debug-4.1.0-sources.jar smack-debug-4.1.0.jar smack-debug-slf4j-4.1.0-javadoc.jar smack-debug-slf4j-4.1.0-sources.jar smack-debug-slf4j-4.1.0.jar smack-experimental-4.1.0-javadoc.jar smack-experimental-4.1.0-sources.jar smack-experimental-4.1.0.jar smack-extensions-4.1.0-javadoc.jar smack-extensions-4.1.0-sources.jar smack-extensions-4.1.0.jar smack-im-4.1.0-javadoc.jar smack-im-4.1.0-sources.jar smack-im-4.1.0.jar smack-java7-4.1.0-javadoc.jar smack-java7-4.1.0-sources.jar smack-java7-4.1.0.jar smack-jingle-old-4.1.0-javadoc.jar smack-jingle-old-4.1.0-sources.jar smack-jingle-old-4.1.0.jar smack-legacy-4.1.0-javadoc.jar smack-legacy-4.1.0-sources.jar smack-legacy-4.1.0.jar smack-resolver-dnsjava-4.1.0-javadoc.jar smack-resolver-dnsjava-4.1.0-sources.jar smack-resolver-dnsjava-4.1.0.jar smack-resolver-javax-4.1.0-javadoc.jar smack-resolver-javax-4.1.0-sources.jar smack-resolver-javax-4.1.0.jar smack-resolver-minidns-4.1.0-javadoc.jar smack-resolver-minidns-4.1.0-sources.jar smack-resolver-minidns-4.1.0.jar smack-sasl-javax-4.1.0-javadoc.jar smack-sasl-javax-4.1.0-sources.jar smack-sasl-javax-4.1.0.jar smack-sasl-provided-4.1.0-javadoc.jar smack-sasl-provided-4.1.0-sources.jar smack-sasl-provided-4.1.0.jar smack-tcp-4.1.0-javadoc.jar smack-tcp-4.1.0-sources.jar smack-tcp-4.1.0.jar stax-1.2.0.jar stax-api-1.0.1.jar xpp3-1.1.6.jar"/>
+            </manifest>
+            <zipfileset src="jar-in-jar-loader.zip"/>
+            <fileset dir="/Users/chenyin/Documents/workspace/htCarSensor2/bin"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="JSoxLib.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="httpclient-4.2.3.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="joda-time-2.1.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="jxmpp-core-0.4.1.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="jxmpp-util-cache-0.5.0-alpha2.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="minidns-0.1.3.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="RXTXcomm.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="simple-xml-2.7.1.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-android-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-android-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-android-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-android-extensions-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-android-extensions-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-android-extensions-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-bosh-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-bosh-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-bosh-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-compression-jzlib-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-compression-jzlib-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-compression-jzlib-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-core-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-core-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-core-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-debug-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-debug-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-debug-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-debug-slf4j-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-debug-slf4j-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-debug-slf4j-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-experimental-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-experimental-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-experimental-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-extensions-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-extensions-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-extensions-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-im-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-im-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-im-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-java7-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-java7-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-java7-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-jingle-old-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-jingle-old-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-jingle-old-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-legacy-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-legacy-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-legacy-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-resolver-dnsjava-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-resolver-dnsjava-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-resolver-dnsjava-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-resolver-javax-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-resolver-javax-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-resolver-javax-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-resolver-minidns-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-resolver-minidns-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-resolver-minidns-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-sasl-javax-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-sasl-javax-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-sasl-javax-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-sasl-provided-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-sasl-provided-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-sasl-provided-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-tcp-4.1.0-javadoc.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-tcp-4.1.0-sources.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="smack-tcp-4.1.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="stax-1.2.0.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="stax-api-1.0.1.jar"/>
+            <zipfileset dir="/Users/chenyin/codes/soxPi/lib" includes="xpp3-1.1.6.jar"/>
+        </jar>
+    </target>
+</project>
