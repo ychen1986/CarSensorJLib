@@ -68,7 +68,7 @@ public class SensorEventPublisher implements SensorEventListener {
 	private void startSensing() {
 		
 			try {
-				//sensor.stopSensor();
+				sensor.stopSensor();
 				
 				debugMSG("Start Sensing...");
 				sensor.getSensorInfo();
