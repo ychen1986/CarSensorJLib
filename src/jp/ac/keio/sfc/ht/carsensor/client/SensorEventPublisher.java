@@ -216,7 +216,7 @@ public class SensorEventPublisher implements SensorEventListener {
 		System.out.println("Netowrk connnecting failed!");
 		System.out.println("Reboot system!");
 		Runtime runtime = Runtime.getRuntime();
-		Process proc = runtime.exec("");
+		Process proc = runtime.exec("/sbin/reboot");
 		System.exit(0);
 	}
 
