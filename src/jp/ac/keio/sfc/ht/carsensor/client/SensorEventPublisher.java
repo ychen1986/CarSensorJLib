@@ -68,7 +68,7 @@ public class SensorEventPublisher implements SensorEventListener {
 	private void startSensing() {
 		
 			try {
-				sensor.stopSensor();
+				//sensor.stopSensor();
 				
 				debugMSG("Start Sensing...");
 				sensor.getSensorInfo();
@@ -216,7 +216,7 @@ public class SensorEventPublisher implements SensorEventListener {
 		System.out.println("Netowrk connnecting failed!");
 		System.out.println("Reboot system!");
 		Runtime runtime = Runtime.getRuntime();
-		Process proc = runtime.exec("./reboot.sh");
+		Process proc = runtime.exec("");
 		System.exit(0);
 	}
 
