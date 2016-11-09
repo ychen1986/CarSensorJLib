@@ -118,8 +118,12 @@ public class SensorSerialReader extends Sensor implements
 		
 		while (true) {
 			try {
+				long coming_time = System.currentTimeMillis();
+				System.out.println("A new data frame comes at "+coming_time);
 				RawSensorData data = readCommand(in);
-				
+				long finished_time = System.currentTimeMillis();
+				System.out.println("The data frame is enqueued at "+ finished_time + ". Processed time: " + (finished_time - coming_time));
+
 				if (data == null) {
 					System.out
 							.println("No more response or event obtained from sensor!");
