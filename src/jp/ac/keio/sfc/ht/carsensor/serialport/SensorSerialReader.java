@@ -114,34 +114,33 @@ public class SensorSerialReader extends Sensor implements
 	public void serialEvent(SerialPortEvent event) {
 		//System.out.println("Serial event occurred!");
 		             
-		
+		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 		
 		while (true) {
+			long coming_time = System.currentTimeMillis();
 			try {
-				long coming_time = System.currentTimeMillis();
+				
 				System.out.println("A new data frame comes at "+coming_time);
-				RawSensorData data = readCommand(in);
-				long finished_time = System.currentTimeMillis();
-				System.out.println("The data frame is enqueued at "+ finished_time + ". Processed time: " + (finished_time - coming_time));
-
+				readCommand(in);
+				
+				/*
 				if (data == null) {
 					System.out
 							.println("No more response or event obtained from sensor!");
 					return;
 				} else {
 					
-					/*SensorEvent sev = parse(data);
-					sevQueue.put(sev);
-					*/
 					rawSensorDataQueue.put(data);
 					
-				}
+				}*/
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			long finished_time = System.currentTimeMillis();
+			System.out.println("The data frame is enqueued at "+ finished_time + ". Processed time: " + (finished_time - coming_time));
 		}
-
+		
 	}
 
 	public void sendCommand(byte[] cmd) throws IOException {
@@ -210,7 +209,7 @@ public class SensorSerialReader extends Sensor implements
 	 * @see
 	 * jp.ac.keio.sfc.ht.carsensor.SensorCMD#readCommand(java.io.InputStream)
 	 */
-	@Override
+	//@Override
 	/*public byte[] readCommand(InputStream in) throws IOException {
 
 		int BUFF_MAX = 1024;
@@ -339,14 +338,15 @@ public class SensorSerialReader extends Sensor implements
 		return null;
 	}*/
 	
+	static int BUFF_MAX = 1024;
+	static byte[] respBuffer = new byte[BUFF_MAX];
 	
-	
-	public RawSensorData readCommand(InputStream in) throws IOException {
+	public void  readCommand(InputStream in) throws IOException {
 		
 		long currentTime = System.currentTimeMillis(); // record the timestamp.
-		int BUFF_MAX = 1024;
+		System.out.println("Data Parsing begins at "+ currentTime);
 		int data;		
-		byte[] respBuffer = new byte[BUFF_MAX];
+		
 		int len = 0;
 
 		int expected_len = -1;
@@ -408,8 +408,10 @@ public class SensorSerialReader extends Sensor implements
 									+ bytesToHexString(response));
 
 						}
-
-						return new RawSensorData(response,currentTime);
+						System.out.println("Data Parsing finished at "+ System.currentTimeMillis());
+						//return new RawSensorData(response,currentTime);
+						rawSensorDataQueue.put(new RawSensorData(response,currentTime));
+						return;
 					} else {
 						System.out.println(classFileName
 								+ " BCC check failed!\n"
@@ -423,7 +425,8 @@ public class SensorSerialReader extends Sensor implements
 				}
 			}
 		}
-		return null;
+		System.out.println("Data Parsing finished at "+ System.currentTimeMillis());
+		return;
 	}
 	
 	public String toString(){
