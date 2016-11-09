@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -44,7 +46,13 @@ public class SensorEventPublisher implements SensorEventListener {
 
 	static void debugMSG(String msg) {
 		if (debug) {
-			System.out.println("[" + CLASS_NAME + "] " + msg);
+			Date now = new Date();
+			SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSS");//dd/MM/yyyy
+			
+			String strDate = sdfDate.format(now);
+			   
+			System.out.println("[" + sdfDate.format(now)+ "] " + "["
+					+ CLASS_NAME + "] " + msg);
 		}
 	}
 
@@ -179,7 +187,7 @@ public class SensorEventPublisher implements SensorEventListener {
 				} while (true);
 
 			} catch (Exception e) {
-				System.out.println("fail!");
+				System.err.println("fail!");
 				e.printStackTrace();
 				
 				//publish = false;
@@ -213,10 +221,10 @@ public class SensorEventPublisher implements SensorEventListener {
 
 	private void handlingNetworkDisconnectionEvent() throws IOException {
 		// TODO Auto-generated method stub
-		System.out.println("Netowrk connnecting failed!");
-		System.out.println("Reboot system!");
+		System.err.println("Netowrk connnecting failed!");
+		System.err.println("Reboot system!");
 		Runtime runtime = Runtime.getRuntime();
-		Process proc = runtime.exec("/sbin/reboot");
+		Process proc = runtime.exec("/sbin/reboot -f");
 		System.exit(0);
 	}
 
