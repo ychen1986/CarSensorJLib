@@ -361,6 +361,10 @@ public class SensorSerialReader extends Sensor implements
 			
 				// Get the expected length of next command;
 				try {
+					/*
+					 * Version check is removed. 2016/11/09
+					 */
+					/*
 					int softVersion = 1;
 					if (this.softwareVersion != null) {
 						softVersion = Integer.parseInt(this.softwareVersion);
@@ -369,38 +373,41 @@ public class SensorSerialReader extends Sensor implements
 						// it is software version 0
 						expected_len = getParaSize((byte)data) + 2;
 					} else {
+					*/
 						if (EVENT_DATA_C != (byte) data) {
 							expected_len = getParaSize((byte) data)+1;
 						} else {
 							int head_len = EVENT_DATA_C_SERO_SIZE
 									+ EVENT_DATA_C_DATA_INDEX_SIZE
 									+ EVENT_DATA_C_ERR_FLAG_SIZE;
+							
+							
 							for (int i = 0; i <= head_len; i++) {								
 								respBuffer[len++] = (byte) data;
-								data = in.read();
-								
-								
+								data = in.read();								
 							}
 							
 							expected_len =  data + 1;
 							
 						}
 						expected_len += len;
-					}
+					//} // Version check
 					respBuffer[len++] = (byte) data;
 					//Buffer the next command into repsBuffer including the protocol head and BBC
+					System.out.println("Reading the exptected_len begins at "+ System.currentTimeMillis());
 					while (len <= expected_len) {						
 						data = in.read();
 						respBuffer[len++] = (byte) data;
 					}
 
-					
+					System.out.println("BCCCheck begins at "+ System.currentTimeMillis());
 					if (BCCCheck(respBuffer,len)) {
 						if (debuggable) {
 							System.out.println(classFileName
 									+ " BCC check succeeded!");
 
 						}
+					System.out.println("Copying response begins at "+ System.currentTimeMillis());
 						byte[] response = Arrays.copyOfRange(respBuffer, 1, len-1);
 						if (debuggable) {
 							System.out.println(classFileName
