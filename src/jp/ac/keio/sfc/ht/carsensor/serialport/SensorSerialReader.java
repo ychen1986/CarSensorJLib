@@ -34,7 +34,7 @@ public class SensorSerialReader extends Sensor implements
 	protected OutputStream out;
 	SerialPort serialPort = null;
 	private List<SensorEventListener> sensorEventListenerList = new LinkedList<SensorEventListener>();
-	private BlockingQueue<SensorEvent> sevQueue = new LinkedBlockingQueue<SensorEvent>();
+	private BlockingQueue<RawSensorData> rawSensorDataQueue = new LinkedBlockingQueue<RawSensorData>();
 	public SensorSerialReader(String _portName, boolean _debuggable)
 			throws UnsupportedCommOperationException, NoSuchPortException,
 			PortInUseException, IOException, TooManyListenersException {
@@ -126,8 +126,10 @@ public class SensorSerialReader extends Sensor implements
 					return;
 				} else {
 					
-					SensorEvent sev = parse(data);
+					/*SensorEvent sev = parse(data);
 					sevQueue.put(sev);
+					*/
+					rawSensorDataQueue.put(data);
 					
 				}
 			} catch (Exception e) {
@@ -336,10 +338,10 @@ public class SensorSerialReader extends Sensor implements
 	
 	
 	public RawSensorData readCommand(InputStream in) throws IOException {
-		long currentTime = System.currentTimeMillis();
+		
+		long currentTime = System.currentTimeMillis(); // record the timestamp.
 		int BUFF_MAX = 1024;
-		int data;
-		// TODO improve this function
+		int data;		
 		byte[] respBuffer = new byte[BUFF_MAX];
 		int len = 0;
 
@@ -430,10 +432,12 @@ public class SensorSerialReader extends Sensor implements
 	@Override
 	public void run() {
 		SensorEvent sev;
+		
 		while(true){
 			
 			try {
-				sev = sevQueue.take();
+				RawSensorData data = rawSensorDataQueue.take();
+				sev = parse(data);
 				triggerEventHandler(sev);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
