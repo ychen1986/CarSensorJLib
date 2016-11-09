@@ -333,8 +333,10 @@ public class SensorSerialReader extends Sensor implements
 		return null;
 	}*/
 	
+	
+	
 	public RawSensorData readCommand(InputStream in) throws IOException {
-
+		long currentTime = System.currentTimeMillis();
 		int BUFF_MAX = 1024;
 		int data;
 		// TODO improve this function
@@ -401,7 +403,7 @@ public class SensorSerialReader extends Sensor implements
 
 						}
 
-						return new RawSensorData(response,System.currentTimeMillis());
+						return new RawSensorData(response,currentTime);
 					} else {
 						System.out.println(classFileName
 								+ " BCC check failed!\n"
