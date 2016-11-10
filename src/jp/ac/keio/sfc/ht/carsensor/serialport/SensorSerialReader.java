@@ -341,30 +341,36 @@ public class SensorSerialReader extends Sensor implements
 	static int BUFF_MAX = 1024;
 	static byte[] respBuffer = new byte[BUFF_MAX];
 	
-	public void  readCommand(InputStream in) throws IOException {
+	int data;		
+	long timestamp;
+	int start;
+	int lengh;
+/*	public  void  readCommand(InputStream in) throws IOException {		
 		
-		long currentTime = System.currentTimeMillis(); // record the timestamp.
-		System.out.println("Data Parsing begins at "+ currentTime);
-		int data;		
-		
-		int len = 0;
-
-		int expected_len = -1;
+		System.out.println("Command reading  begins at "+ System.currentTimeMillis());
+		data = -1;		
+		timestamp = 0;
+		len = 0;
+		remaining_len = -1;
 		while (((data = in.read()) > -1)) {
 			// buffer bytes until reaching a PROTOCOL_HEADER
 			if (PROTOCOL_HEADER != (byte) data) {
+				
 				continue;
 			} else {
-				
+				System.out.println("Protocol Head found at "+ System.currentTimeMillis());
+				timestamp = System.currentTimeMillis();
+				System.out.println("Data Parsing begins at "+ System.currentTimeMillis());
 				respBuffer[len++] = (byte) data; // input the protocol head into buffer
 				data = in.read(); // read the cmd code,e.g., 0x8A
 			
 				// Get the expected length of next command;
 				try {
-					/*
+					System.out.println("Getting remaining_len begins at "+ System.currentTimeMillis());
+					
 					 * Version check is removed. 2016/11/09
-					 */
-					/*
+					 
+					
 					int softVersion = 1;
 					if (this.softwareVersion != null) {
 						softVersion = Integer.parseInt(this.softwareVersion);
@@ -373,33 +379,50 @@ public class SensorSerialReader extends Sensor implements
 						// it is software version 0
 						expected_len = getParaSize((byte)data) + 2;
 					} else {
-					*/
-						if (EVENT_DATA_C != (byte) data) {
-							expected_len = getParaSize((byte) data)+1;
-						} else {
+					
+						if (EVENT_DATA_C != (byte) data) { // the frame is not an event data C
+							
+							remaining_len = getParaSize((byte) data)+1;
+							System.out.println("function" + remaining_len);
+							//System.out.println("Map " + (ParaSizeMap.get(data) + 1));
+							//remaining_len = ParaSizeMap.get(data)+1;
+							System.out.println("None-C event: remaining_len determined at: "+ System.currentTimeMillis());
+						} else {// the frame is an event data C
 							int head_len = EVENT_DATA_C_SERO_SIZE
 									+ EVENT_DATA_C_DATA_INDEX_SIZE
 									+ EVENT_DATA_C_ERR_FLAG_SIZE;
 							
 							
+							 loop read
 							for (int i = 0; i <= head_len; i++) {								
 								respBuffer[len++] = (byte) data;
 								data = in.read();								
 							}
+							{// batch read
+								in.read(respBuffer, len, head_len);
+								len += head_len;
+								data = in.read();								
+							}
 							
-							expected_len =  data + 1;
-							
+							remaining_len =  data + 1;
+							System.out.println("C event: remaining_len determined at: "+ System.currentTimeMillis());
 						}
-						expected_len += len;
+						//loop read
+						//expected_len += len; 
 					//} // Version check
-					respBuffer[len++] = (byte) data;
-					//Buffer the next command into repsBuffer including the protocol head and BBC
-					System.out.println("Reading the exptected_len begins at "+ System.currentTimeMillis());
+					respBuffer[len++] = (byte) data; //Buffer the next command into repsBuffer including the protocol head and BBC
+					
+					System.out.println("Reading the remaining_len begins at "+ System.currentTimeMillis());
+					 loop read
 					while (len <= expected_len) {						
 						data = in.read();
 						respBuffer[len++] = (byte) data;
 					}
-
+					{// batch read
+						in.read(respBuffer, len, remaining_len);
+						len += remaining_len;							
+					}
+					
 					System.out.println("BCCCheck begins at "+ System.currentTimeMillis());
 					if (BCCCheck(respBuffer,len)) {
 						if (debuggable) {
@@ -417,7 +440,7 @@ public class SensorSerialReader extends Sensor implements
 						}
 						System.out.println("Data Parsing finished at "+ System.currentTimeMillis());
 						//return new RawSensorData(response,currentTime);
-						rawSensorDataQueue.put(new RawSensorData(response,currentTime));
+						rawSensorDataQueue.put(new RawSensorData(response,timestamp));
 						return;
 					} else {
 						System.out.println(classFileName
@@ -435,7 +458,59 @@ public class SensorSerialReader extends Sensor implements
 		System.out.println("Data Parsing finished at "+ System.currentTimeMillis());
 		return;
 	}
-	
+*/	
+	public  void  readCommand(InputStream in) throws IOException {		
+		
+		do{
+			timestamp = System.currentTimeMillis();
+			System.out.println("Command reading  begins at "+ timestamp);			
+			start = 0;
+			lengh = in.read(respBuffer,start,BUFF_MAX);
+			if (lengh == 0){
+				// No data any more!
+				System.out.println("Data Parsing finished at "+ System.currentTimeMillis());
+				return;
+			}
+			if ( PROTOCOL_HEADER == respBuffer[start] ){ 
+				// This is not a fresh data frame. Drop it.
+				continue;
+			}else{
+				// Do BCCCheck
+				if (BCCCheck(respBuffer,lengh)) {
+					if (debuggable) {
+						System.out.println(classFileName
+								+ " BCC check succeeded!");
+
+					}
+				System.out.println("Copying response begins at "+ System.currentTimeMillis());
+					byte[] response = Arrays.copyOfRange(respBuffer, start+1, lengh-1);
+					if (debuggable) {
+						System.out.println(classFileName
+								+ " New Response Received: "
+								+ bytesToHexString(response));
+
+					}
+					System.out.println("Data Parsing finished at "+ System.currentTimeMillis());
+					//return new RawSensorData(response,currentTime);
+					try {
+						rawSensorDataQueue.put(new RawSensorData(response,timestamp));
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					return;
+				} else {
+					System.out.println(classFileName
+							+ " BCC check failed!\n"
+							+ bytesToHexString(respBuffer,lengh));
+					
+				}
+			}
+		}
+		while(true);
+
+	}
+
 	public String toString(){
 		String msg = super.toString();
 		msg += "Serial port: " + serialPort+ "\n";
