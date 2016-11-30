@@ -1,22 +1,19 @@
 package jp.ac.keio.sfc.ht.carsensor.client;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
-import jp.ac.keio.sfc.ht.carsensor.SensorCMD;
-import jp.ac.keio.sfc.ht.carsensor.Utility;
 import jp.ac.keio.sfc.ht.carsensor.protocol.RawSensorData;
 import jp.ac.keio.sfc.ht.carsensor.protocol.SensorEvent;
 import jp.ac.keio.sfc.ht.carsensor.protocol.SensorEventListener;
 import jp.ac.keio.sfc.ht.carsensor.serialport.SensorSerialReader;
-import jp.ac.keio.sfc.ht.sox.protocol.TransducerValue;
+import jp.ac.keio.sfc.ht.carsensor.client.exceptions.*;
 
 public class SensorEventPublisher implements SensorEventListener {
 	private static boolean debug = false;
@@ -49,15 +46,16 @@ public class SensorEventPublisher implements SensorEventListener {
 			Date now = new Date();
 			SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSS");//dd/MM/yyyy
 			
-			String strDate = sdfDate.format(now);
+			//String strDate = sdfDate.format(now);
 			   
 			System.out.println("[" + sdfDate.format(now)+ "] " + "["
 					+ CLASS_NAME + "] " + msg);
 		}
 	}
+	
 
-	private void connectToSensor() {
-		while (true) {
+	private void connectToSensor() throws SensorConnectingFailedException {
+		
 			try {
 
 				debugMSG("Connect to sensor...");
@@ -65,33 +63,45 @@ public class SensorEventPublisher implements SensorEventListener {
 				debugMSG("Done...");
 				debugMSG("Add sensor event listener...");
 				sensor.addSensorEventListener(this);
-				debugMSG("Done...");
+				debugMSG("Done...");				
 				return;
 			} catch (Exception e) {
-				debugMSG("Failed...");
+				throw new SensorConnectingFailedException("Failed to connect to " + SERIAL_PORT, e);
 			}
-		}
+		
 	}
 
-	private void startSensing() {
+	private void startSensing() throws SensorInitializationErrorException {
 		
-			try {
+			
 				//sensor.stopSensor();
 				
-				debugMSG("Start Sensing...");
-				sensor.getSensorInfo();
-				sensor.getVS();
-				sensor.startSensor();
+				debugMSG("Initialize Sensor...");
+				try {
+					sensor.getSensorInfo();
+					sensor.getVS();
+					
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					throw new SensorInitializationErrorException ("Otaining Sensor Information failed!", e);
+				}
+				if ( sensor.isInitialized()){
+					try {
+						sensor.startSensor();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						throw new SensorInitializationErrorException ("Starting sensing failed!", e);
+					}
+				}else {
+					throw new SensorInitializationErrorException ("Sensor is not initialized!");
+				}										
+				
+				
 				//Thread.sleep(1000);
 				//sensor.startSensorWithoutFan();
-				debugMSG("Done...");
+				debugMSG("Done!");
 				
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				debugMSG("Failed...");
-				System.exit(-1);
-			}
+			
 		
 
 	}
@@ -128,11 +138,20 @@ public class SensorEventPublisher implements SensorEventListener {
 		
 		parseOptions(args);
 		// connect to the sensor's serial port and start the sensor
-		debugMSG("Connect to sensors...");
-		connectToSensor();
-		debugMSG("Start sensing...");
-		startSensing();
-		debugMSG("Done!");
+		
+		try {
+			debugMSG("Connect to sensors...");
+			connectToSensor();
+			debugMSG("Start sensing...");
+			startSensing();
+			debugMSG("Done!");
+		} catch (SensorConnectingFailedException | SensorInitializationErrorException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+			reboot();
+			
+		}
+
 		
 		// Add 10 seconds delay as requested in the specification of
 		// sensor
@@ -146,16 +165,18 @@ public class SensorEventPublisher implements SensorEventListener {
 		publish = true;
 		Socket socket = null;
 		ObjectOutputStream out = null;
-		RawSensorData data = null;
+		
 		int reconNo = 0;
 		while (true) {// 1st Loop. If network connection is down, reconnect it
-			if(reconNo > 10 ){
+			if(reconNo > 10 ){// if 
 				try {
 					handlingNetworkDisconnectionEvent();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				continue;
+				
 			}
 			try {
 
@@ -176,18 +197,32 @@ public class SensorEventPublisher implements SensorEventListener {
 				out = new ObjectOutputStream(
 						socket.getOutputStream());
 
-				// Read data from the queue and publish it to the server
-				data = dataQueue.take();
-				do {// 2nd loop; Output the data to proxy server
-					debugMSG(data.toString());
-					out.writeObject(data);
-					out.flush();
-					debugMSG("Done!");
-					data = dataQueue.take();
-				} while (true);
+				// Loop! Read data from the queue and publish it to the server
+				publish(out);
 
-			} catch (Exception e) {
-				System.err.println("fail!");
+			}catch (SensorDataNotComeException e){
+				// No more data obtained from the sensor. It is deduced the sensor comes to a halt. Reboot!
+				
+				e.printStackTrace();
+				try {
+					if(out != null){
+						out.close();
+					}
+					if(socket != null){
+					   socket.close();
+					}
+										
+				} catch ( IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+					
+				}finally{
+					reboot();
+				}
+				
+			} 
+			catch ( PublshingIOException  | IOException e ) {
+				// Network connection is in error. Try to reconnect the network.
 				e.printStackTrace();
 				
 				//publish = false;
@@ -216,22 +251,68 @@ public class SensorEventPublisher implements SensorEventListener {
 				
 				
 			}
+			
 		}
 	}
 
+	
+	private void publish(ObjectOutputStream out) throws SensorDataNotComeException, PublshingIOException{
+		
+		
+		RawSensorData data;
+		
+			
+			
+			while(true)
+			{// 2nd loop; Output the data to proxy server
+				try {
+					data = dataQueue.poll(1, TimeUnit.MINUTES);
+					if (null == data ){
+						throw new SensorDataNotComeException("Timeout: 1 min. No data comes from the sensor" + sensor.getSerial());
+					}
+					debugMSG(data.toString());
+					out.writeObject(data);
+					out.flush();
+					debugMSG("Done!");
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					throw new PublshingIOException("Publishing Failed!", e);
+				}
+				
+			}
+		
+		
+	}
 	private void handlingNetworkDisconnectionEvent() throws IOException {
 		// TODO Auto-generated method stub
 		System.err.println("Netowrk connnecting failed!");
 		System.err.println("Reboot system!");
-		Runtime runtime = Runtime.getRuntime();
-		Process proc = runtime.exec("/sbin/reboot -f");
+		reboot();
 		System.exit(0);
 	}
 
+	private void reboot(){
+		
+		Runtime runtime = Runtime.getRuntime();
+		try {
+			runtime.exec("shutdown -r +1");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.exit(-1);
+		
+	}
 	@Override
 	public void handleSensorEvent(SensorEvent ev) throws Exception {
 		// Enqueue the sensor and corresponding time stamp
 		if (publish) {
+			
 			dataQueue.put(new RawSensorData(ev.getCmd(), ev.getTimestamp()));
 		}
 

@@ -22,13 +22,31 @@ public abstract  class Sensor extends SensorCMD {
 	public boolean isGPSAvailable() {
 		return GPS_Status;
 	}
+	
+	public int getSerial(){
+		return serial;
+	}
+	
 
 	public Sensor() {
 		// TODO Auto-generated constructor stub
 		super();
 
 	}
-
+	/***
+	 * 
+	 * @return true if softwareVersion, modelName, Vs, VsTemp are all initialized; false, otherwise.
+	 */
+	public boolean isInitialized(){
+		if ( softwareVersion  != null && 
+				modelName != null &&
+				Vs != -100 &&
+				VsTemp != 0.0)
+			return true;
+		else 
+			return false;
+		
+	}
 	public String toString(){
 		String msg = "";
 		msg += "Serial number: " + serial + "\n";
@@ -88,12 +106,24 @@ public abstract  class Sensor extends SensorCMD {
 	public void getSensorInfo() throws IOException {
 		System.out.println("Get sensor machine information...");
 		sendCommand(GET_SENSOR_INFOMATION);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 
 	public void getVS() throws IOException {
 		System.out.println("Get Vs value...");
 		sendCommand(GET_VS_VALUE);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 
@@ -128,20 +158,24 @@ public abstract  class Sensor extends SensorCMD {
 		}
 		stopSensorWithFan();
 	}
-
-	public int getParaSize(byte cmd) throws Exception{
+	protected static final Map<Byte, Integer> ParaSizeMap;
+	static{
+			ParaSizeMap = new HashMap<Byte, Integer>();
+			ParaSizeMap.put(EVENT_DATA_A,  EVENT_DATA_A_PARA_SIZE);
+			ParaSizeMap.put(EVENT_DATA_B, EVENT_DATA_B_PARA_SIZE);
+			ParaSizeMap.put(RES_INFO, RES_INFO_PARA_SIZE);
+			ParaSizeMap.put(RES_VS, RES_VS_PARA_SIZE);
+			ParaSizeMap.put(RES_CMD, RES_CMD_PARA_SIZE);
+			ParaSizeMap.put(RES_GPS, RES_GPS_PARA_SIZE);
+			ParaSizeMap.put(EVENT_GPS_START, EVENT_GPS_START_PARA_SIZE);
+	}
+	public static int getParaSize(byte cmd) throws Exception{
 		switch (cmd){
-		case EVENT_DATA_A: if(this.softwareVersion != null && this.softwareVersion.equals("0000")){
-			return EVENT_DATA_A_PARA_SIZE - 1;
-		}else{
+		case EVENT_DATA_A: 
 			return EVENT_DATA_A_PARA_SIZE;
-		}
 	
-		case EVENT_DATA_B: if(this.softwareVersion != null && this.softwareVersion.equals("0000")){
-			return EVENT_DATA_B_PARA_SIZE - 1;
-		}else{
+		case EVENT_DATA_B: 
 			return EVENT_DATA_B_PARA_SIZE;
-		} 
 		case RES_INFO: return RES_INFO_PARA_SIZE;
 		case RES_VS: return RES_VS_PARA_SIZE;
 		case RES_CMD: return RES_CMD_PARA_SIZE;
@@ -651,10 +685,11 @@ public abstract  class Sensor extends SensorCMD {
 	 */
 	/**
 	 * @param in
+	 * @return 
 	 * @return a byte array containing the next response from the InputStream in
 	 * @throws IOException
 	 */
-	public abstract RawSensorData readCommand(InputStream in) throws IOException;
+	public abstract  void readCommand(InputStream in) throws IOException;
 
 	
 	

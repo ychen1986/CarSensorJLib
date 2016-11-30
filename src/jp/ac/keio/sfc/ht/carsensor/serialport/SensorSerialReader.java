@@ -9,7 +9,6 @@ import gnu.io.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.LinkedList;
@@ -19,7 +18,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import jp.ac.keio.sfc.ht.carsensor.Sensor;
-import jp.ac.keio.sfc.ht.carsensor.SensorCMD;
 import jp.ac.keio.sfc.ht.carsensor.protocol.RawSensorData;
 import jp.ac.keio.sfc.ht.carsensor.protocol.SensorEvent;
 import jp.ac.keio.sfc.ht.carsensor.protocol.SensorEventListener;
@@ -55,7 +53,7 @@ public class SensorSerialReader extends Sensor implements
 		serialPort.notifyOnDataAvailable(true);
 		
 		(new Thread(this)).start();
-		
+				
 	}
 
 	/**
@@ -117,10 +115,10 @@ public class SensorSerialReader extends Sensor implements
 		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 		
 		while (true) {
-			long coming_time = System.currentTimeMillis();
+			//long coming_time = System.currentTimeMillis();
 			try {
 				
-				System.out.println("A new data frame comes at "+coming_time);
+				//System.out.println("A new data frame comes at "+coming_time);
 				readCommand(in);
 				
 				/*
@@ -137,8 +135,8 @@ public class SensorSerialReader extends Sensor implements
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			long finished_time = System.currentTimeMillis();
-			System.out.println("The data frame is enqueued at "+ finished_time + ". Processed time: " + (finished_time - coming_time));
+			//long finished_time = System.currentTimeMillis();
+			//System.out.println("The data frame is enqueued at "+ finished_time + ". Processed time: " + (finished_time - coming_time));
 		}
 		
 	}
@@ -344,109 +342,112 @@ public class SensorSerialReader extends Sensor implements
 	int data;		
 	long timestamp;
 	int start;
-	int lengh;
-/*	public  void  readCommand(InputStream in) throws IOException {		
+	int length;
+	static int EVENT_DATA_C_HEAD_SIZE = 1 + EVENT_DATA_C_SERO_SIZE
+			+ EVENT_DATA_C_DATA_INDEX_SIZE
+			+ EVENT_DATA_C_ERR_FLAG_SIZE;
+	public  void  readCommand(InputStream in) throws IOException {		
 		
-		System.out.println("Command reading  begins at "+ System.currentTimeMillis());
+		//System.out.println("Command reading  begins at "+ System.currentTimeMillis());
 		data = -1;		
 		timestamp = 0;
-		len = 0;
-		remaining_len = -1;
+		length = 0;
+		int remaining_len = -1;
 		while (((data = in.read()) > -1)) {
 			// buffer bytes until reaching a PROTOCOL_HEADER
 			if (PROTOCOL_HEADER != (byte) data) {
 				
 				continue;
 			} else {
-				System.out.println("Protocol Head found at "+ System.currentTimeMillis());
+				//System.out.println("Protocol Head found at "+ System.currentTimeMillis());
 				timestamp = System.currentTimeMillis();
-				System.out.println("Data Parsing begins at "+ System.currentTimeMillis());
-				respBuffer[len++] = (byte) data; // input the protocol head into buffer
+				//System.out.println("Data Parsing begins at "+ System.currentTimeMillis());
+				respBuffer[length++] = (byte) data; // input the protocol head into buffer
 				data = in.read(); // read the cmd code,e.g., 0x8A
 			
 				// Get the expected length of next command;
 				try {
-					System.out.println("Getting remaining_len begins at "+ System.currentTimeMillis());
+					//System.out.println("Getting remaining_len begins at "+ System.currentTimeMillis());
 					
-					 * Version check is removed. 2016/11/09
+					// * Version check is removed. 2016/11/09
 					 
 					
-					int softVersion = 1;
-					if (this.softwareVersion != null) {
-						softVersion = Integer.parseInt(this.softwareVersion);
-					}
-					if (softVersion < 1) {
+					//int softVersion = 1;
+					//if (this.softwareVersion != null) {
+						//softVersion = Integer.parseInt(this.softwareVersion);
+					//}
+					//if (softVersion < 1) {
 						// it is software version 0
-						expected_len = getParaSize((byte)data) + 2;
-					} else {
+						//remaining_len = getParaSize((byte)data) + 2;
+					//} else {
 					
 						if (EVENT_DATA_C != (byte) data) { // the frame is not an event data C
 							
 							remaining_len = getParaSize((byte) data)+1;
-							System.out.println("function" + remaining_len);
+							//System.out.println("function" + remaining_len);
 							//System.out.println("Map " + (ParaSizeMap.get(data) + 1));
 							//remaining_len = ParaSizeMap.get(data)+1;
-							System.out.println("None-C event: remaining_len determined at: "+ System.currentTimeMillis());
+							//System.out.println("None-C event: remaining_len determined as "+remaining_len + " at: " + System.currentTimeMillis());
 						} else {// the frame is an event data C
 							int head_len = EVENT_DATA_C_SERO_SIZE
 									+ EVENT_DATA_C_DATA_INDEX_SIZE
 									+ EVENT_DATA_C_ERR_FLAG_SIZE;
 							
 							
-							 loop read
+							// loop read the header
 							for (int i = 0; i <= head_len; i++) {								
-								respBuffer[len++] = (byte) data;
+								respBuffer[length++] = (byte) data;
 								data = in.read();								
 							}
-							{// batch read
-								in.read(respBuffer, len, head_len);
-								len += head_len;
+							/*{// batch read
+								in.read(respBuffer, length, head_len);
+								length += head_len;
 								data = in.read();								
-							}
+							}*/
 							
 							remaining_len =  data + 1;
-							System.out.println("C event: remaining_len determined at: "+ System.currentTimeMillis());
+							//System.out.println("C event: remaining_len determined at: "+ System.currentTimeMillis());
 						}
 						//loop read
-						//expected_len += len; 
+						remaining_len += length; 
 					//} // Version check
-					respBuffer[len++] = (byte) data; //Buffer the next command into repsBuffer including the protocol head and BBC
+					respBuffer[length++] = (byte) data; //Buffer the next byte into repsBuffer including the protocol head and BBC
 					
-					System.out.println("Reading the remaining_len begins at "+ System.currentTimeMillis());
-					 loop read
-					while (len <= expected_len) {						
+					//System.out.println("Reading the remaining_len begins at "+ System.currentTimeMillis());
+					//loop read
+					while (length <= remaining_len) {						
 						data = in.read();
-						respBuffer[len++] = (byte) data;
+						respBuffer[length++] = (byte) data;
 					}
-					{// batch read
-						in.read(respBuffer, len, remaining_len);
-						len += remaining_len;							
-					}
+					/*{// batch read
+						in.read(respBuffer, length, remaining_len);
+						length += remaining_len;							
+					}*/
 					
-					System.out.println("BCCCheck begins at "+ System.currentTimeMillis());
-					if (BCCCheck(respBuffer,len)) {
+					//System.out.println("BCCCheck begins at "+ System.currentTimeMillis());
+					if (BCCCheck(respBuffer,length)) {
 						if (debuggable) {
 							System.out.println(classFileName
 									+ " BCC check succeeded!");
 
 						}
-					System.out.println("Copying response begins at "+ System.currentTimeMillis());
-						byte[] response = Arrays.copyOfRange(respBuffer, 1, len-1);
+					//System.out.println("Copying response begins at "+ System.currentTimeMillis());
+						byte[] response = Arrays.copyOfRange(respBuffer, 1, length-1);
 						if (debuggable) {
 							System.out.println(classFileName
 									+ " New Response Received: "
 									+ bytesToHexString(response));
 
 						}
-						System.out.println("Data Parsing finished at "+ System.currentTimeMillis());
+						//System.out.println("Data Parsing finished at "+ System.currentTimeMillis());
 						//return new RawSensorData(response,currentTime);
 						rawSensorDataQueue.put(new RawSensorData(response,timestamp));
 						return;
 					} else {
 						System.out.println(classFileName
 								+ " BCC check failed!\n"
-								+ bytesToHexString(respBuffer,len));
-						len = 0;
+								+ bytesToHexString(respBuffer,length));
+						length = 0;
 					}
 
 				} catch (Exception e) {
@@ -455,62 +456,117 @@ public class SensorSerialReader extends Sensor implements
 				}
 			}
 		}
-		System.out.println("Data Parsing finished at "+ System.currentTimeMillis());
+		//System.out.println("Data Parsing finished at "+ System.currentTimeMillis());
 		return;
 	}
-*/	
-	public  void  readCommand(InputStream in) throws IOException {		
+	
+	/*public  void  readCommand(InputStream in) throws IOException {		
 		
-		do{
-			timestamp = System.currentTimeMillis();
-			System.out.println("Command reading  begins at "+ timestamp);			
+		
+			timestamp = System.currentTimeMillis(); // record the current time
+			System.out.println("Command reading  begins at "+ timestamp);		// for debug	
 			start = 0;
-			lengh = in.read(respBuffer,start,BUFF_MAX);
-			if (lengh == 0){
-				// No data any more!
-				System.out.println("Data Parsing finished at "+ System.currentTimeMillis());
+			if(1 == length){// A solo 9A came in last time.
+				System.out.println(classFileName
+						+ " Solo 9A. Add suceeding bytes.");
+				length = in.read(respBuffer,start+1,BUFF_MAX-1) + 1; // obtain the succeeding data as many as BUFF_MAX
+			}else{
+				System.out.println(classFileName
+						+ "Not Solo 9A. Read suceeding bytes as a new cmd.");
+				length = in.read(respBuffer,start,BUFF_MAX); // obtain a new byte array as many as BUFF_MAX
+			}
+			
+			
+						if (0 == length){
+				// No data any more return !
+				System.out.println("No more available data: "+ System.currentTimeMillis());
 				return;
 			}
-			if ( PROTOCOL_HEADER == respBuffer[start] ){ 
-				// This is not a fresh data frame. Drop it.
-				continue;
-			}else{
-				// Do BCCCheck
-				if (BCCCheck(respBuffer,lengh)) {
-					if (debuggable) {
-						System.out.println(classFileName
-								+ " BCC check succeeded!");
-
-					}
-				System.out.println("Copying response begins at "+ System.currentTimeMillis());
-					byte[] response = Arrays.copyOfRange(respBuffer, start+1, lengh-1);
-					if (debuggable) {
-						System.out.println(classFileName
+				System.out.println(classFileName
 								+ " New Response Received: "
-								+ bytesToHexString(response));
+								+ bytesToHexString(respBuffer,length)); // for debug
+			
+			if ( PROTOCOL_HEADER == respBuffer[start] ){  // A protocol head is recognized 
 
+				if(1 == length )
+				{
+					//A solo 9A came separately with the succeeding bytes.
+					//Return to wait the suceeding bytes
+					return;
+				}
+				
+				if(!BCCCheck(respBuffer,length))
+				{ //Do error check with nor BCC checksum.
+				  // Notice that event multiple commands come as the same time, the checksum still work.
+					System.out.println(classFileName
+							+ " BCC check failed!\n"
+							+ bytesToHexString(respBuffer,length));
+					return;
+				}else{
+					System.out.println(classFileName
+							+ " BCC check suceeded!\n"
+							+ bytesToHexString(respBuffer,length));
+				}
+				
+				System.out.println(classFileName
+						+ " length of buffered bytes: "
+						+ length);
+				for(int remaining_len = 0; start < length; ){
+					
+					 *  Parse the bytes into sensor response or cmds.
+					 
+					
+					System.out.println(classFileName
+							+ " Start = " + start);
+					start++; // move to cmd code
+					byte cmd_code = respBuffer[start]; // get the cmd code
+					System.out.println(classFileName
+							+ " Get parameter size for CMD code"
+							+ byteToHexString(cmd_code));
+					if (EVENT_DATA_C != cmd_code) { // the frame is not an event data C
+						
+						try {
+							
+							remaining_len = 1 + getParaSize(cmd_code);
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+							return;
+						}
+						System.out.println("None-C event: remaining_len determined as "+ remaining_len + " at: "+ System.currentTimeMillis());
+					} else {// the frame is an event data C
+											
+						remaining_len =  EVENT_DATA_C_HEAD_SIZE + (int)respBuffer[start + EVENT_DATA_C_HEAD_SIZE] + 1; 
+						 
+						System.out.println("C event: remaining_len determined as "+ remaining_len + " at: "+ System.currentTimeMillis());
 					}
-					System.out.println("Data Parsing finished at "+ System.currentTimeMillis());
-					//return new RawSensorData(response,currentTime);
+					
+					System.out.println("Copy from " + start + " to " + (start + remaining_len - 1));
+					byte[] response = Arrays.copyOfRange(respBuffer, start, remaining_len); // copy from cmd_code to the end of the cmd without protocol head and checksum
+					start = start + remaining_len + 1; //  move to next head_protocol (if exits)
+					System.out.println(classFileName
+							+ "A new cmd is copied: "
+							+ bytesToHexString(response));
 					try {
 						rawSensorDataQueue.put(new RawSensorData(response,timestamp));
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					return;
-				} else {
-					System.out.println(classFileName
-							+ " BCC check failed!\n"
-							+ bytesToHexString(respBuffer,lengh));
-					
+
 				}
+
+				
+				return;
+			}else{
+				// not startting with protocol head. Drop it.
+				return;
+				
 			}
-		}
-		while(true);
+		
 
 	}
-
+*/
 	public String toString(){
 		String msg = super.toString();
 		msg += "Serial port: " + serialPort+ "\n";
@@ -525,9 +581,12 @@ public class SensorSerialReader extends Sensor implements
 		while(true){
 			
 			try {
-				RawSensorData data = rawSensorDataQueue.take();
-				sev = parse(data);
+				RawSensorData data = rawSensorDataQueue.take();//get raw data received from sensor
+				
+				sev = parse(data); // parse the raw data into a sensor event where the PM 2.5 data is corrected.
 				triggerEventHandler(sev);
+				
+				
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

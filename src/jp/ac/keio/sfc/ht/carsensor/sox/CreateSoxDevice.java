@@ -33,21 +33,29 @@ public class CreateSoxDevice {
 			try {
 				debugMSG("Connect to sox server " + soxServer + "...");
 				con = new SoxConnection(soxServer, soxUser, soxPasswd, false);
+				//con = new SoxConnection(soxServer, false);
 			} catch (SmackException | IOException | XMPPException e) {
 				// TODO Auto-generated catch block
 				
-				System.err.println("Cannot connect to SoxServer" + soxServer );
+				System.err.println("Cannot connect to SoxServer " + soxServer );
 				e.printStackTrace();
 				System.exit(-1);
 			}
 			debugMSG("Done!");
 		}
 		
-		for(int i = 0; i <= 100; i++){
+		createNewTypedDevice("carsensor026_replay");
+		createNewTypedDevice("carsensor027_replay");
+		createNewTypedDevice("carsensor029_replay");
+		createNewTypedDevice("carsensor030_replay");
+		createNewTypedDevice("carsensor031_replay");
+		createNewTypedDevice("carsensor033_replay");
+		
+		/*for(int i = 0; i <= 100; i++){
 			
 			String deviceName = "carsensor"+String.format("%03d", i)+"_100Hz";
 			createNewTypedDevice(deviceName);
-		}
+		}*/
 	}
 	static boolean createNewTypedDevice(String deviceName) {
 		String[] dataIds = { "Acceleration X", "Acceleration Y",

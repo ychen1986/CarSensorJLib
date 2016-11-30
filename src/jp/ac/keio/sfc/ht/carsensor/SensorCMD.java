@@ -227,7 +227,7 @@ public abstract class SensorCMD extends Object {
 			//TODO throw exception 
 			return false;
 		}
-		if (XorBCCGenerating(raw, len - 1) == raw[len - 1]) {
+		if (0 == XorBCCGenerating(raw, len )) {
 			return true;
 		} else
 			return false;
