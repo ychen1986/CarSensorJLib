@@ -3,8 +3,11 @@ package jp.ac.keio.sfc.ht.carsensor.sox;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jp.ac.keio.sfc.ht.sox.protocol.Device;
 import jp.ac.keio.sfc.ht.sox.protocol.DeviceType;
@@ -43,47 +46,103 @@ public class CreateSoxDevice {
 			}
 			debugMSG("Done!");
 		}
-		
-		createNewTypedDevice("carsensor026_replay");
+		//createNewTypedDevice("carsensor_test");
+		/*createNewTypedDevice("carsensor026_replay");
 		createNewTypedDevice("carsensor027_replay");
 		createNewTypedDevice("carsensor029_replay");
 		createNewTypedDevice("carsensor030_replay");
 		createNewTypedDevice("carsensor031_replay");
 		createNewTypedDevice("carsensor033_replay");
-		
-		/*for(int i = 0; i <= 100; i++){
+		*/
+		for(int i = 0; i <= 100; i++){
 			
 			String deviceName = "carsensor"+String.format("%03d", i)+"_100Hz";
+			//String deviceName = "carsensor"+String.format("%03d", i);
 			createNewTypedDevice(deviceName);
-		}*/
+		}
 	}
+	private static final Map<String, String> metaDatasMap;
+	static {
+        Map<String, String> metaDataMap= new HashMap();        
+        metaDataMap.put("Data Index","");
+        metaDataMap.put("Serial Number","");
+        metaDataMap.put("Acceleration X","m/s^2");
+        metaDataMap.put("Acceleration Y","m/s^2");
+        metaDataMap.put("Acceleration Z", "m/s^2");
+        metaDataMap.put("Angular Velocity X", "rad/s");
+        metaDataMap.put("Angular Velocity Y","rad/s");
+        metaDataMap.put("Angular Velocity Z", "rad/s");
+        metaDataMap.put("Geomagnetism X", "\u00B5T");
+        metaDataMap.put("Geomagnetism Y","\u00B5T");
+        metaDataMap.put("Geomagnetism Z", "\u00B5T");
+        metaDataMap.put("Atmospheric Pressure","hPa");
+        metaDataMap.put("Atmospheric Temperature","°C");	
+        metaDataMap.put("Atmospheric Humidity","%RH");
+        metaDataMap.put("UV","W/m^2");
+        metaDataMap.put("Illuminance","Lx");
+        metaDataMap.put("PM2.5","\u00B5g/m^3");
+        metaDataMap.put("Satellite Number",""); 
+        metaDataMap.put("Longitude", "");
+        metaDataMap.put("Latitude", "");
+        metaDataMap.put("Altitude","m");
+        metaDataMap.put("Speed", "km/hr");
+        metaDataMap.put("Cource","°");
+        
+        metaDatasMap = Collections.unmodifiableMap(metaDataMap);
+    }
+	/*
 	static boolean createNewTypedDevice(String deviceName) {
-		String[] dataIds = { "Acceleration X", "Acceleration Y",
-				"Acceleration Z", "Angular Velocity X", "Angular Velocity Y",
-				"Angular Velocity Z", "Geomagnetism X", "Geomagnetism Y",
-				"Geomagnetism Z", "Atmospheric Pressure",
-				"Atmospheric Temperature", "Illuminance", "PM2.5",
-				"Satellite Number", "Longitude", "Latitude", "Altitude",
-				"Speed", "Cource", };
+		String[] dataIds = { 
+				"Data Index",
+				"Serial Number",
+				"Acceleration X",
+				"Acceleration Y",
+				"Acceleration Z", 
+				"Angular Velocity X", 
+				"Angular Velocity Y",
+				"Angular Velocity Z", 
+				"Geomagnetism X", 
+				"Geomagnetism Y",
+				"Geomagnetism Z", 
+				"Atmospheric Pressure",
+				"Atmospheric Temperature",	
+				"Atmospheric Humidity",
+				"UV",
+				"Illuminance",
+				"PM2.5",
+				"Satellite Number", 
+				"Longitude", 
+				"Latitude", 
+				"Altitude",
+				"Speed", 
+				"Cource"};
 		return createNewTypedDevice(deviceName, dataIds);
-	}
+	}*/
 
-	private static boolean createNewTypedDevice(String deviceName,
-			String[] dataIds) {
-
+	//private static boolean createNewTypedDevice(String deviceName,
+	//		String[] dataIds) {
+	static boolean createNewTypedDevice(String deviceName) {
 		Device device = new Device();
 		device.setId(deviceName);
 		device.setDeviceType(DeviceType.OUTDOOR_WEATHER);
 		device.setName(deviceName);
 
 		List<Transducer> transducers = new ArrayList<Transducer>();
-
-		for (String s : dataIds) {
+		for (Map.Entry<String, String> entry : metaDatasMap.entrySet())
+		{	Transducer metaValue = new Transducer();
+			metaValue.setName(entry.getKey());
+			metaValue.setId(entry.getKey());
+			metaValue.setUnits(entry.getValue());
+			transducers.add(metaValue);
+		   		
+		}
+		/*for (String s : dataIds) {
 			Transducer metaValue = new Transducer();
 			metaValue.setName(s);
 			metaValue.setId(s);
+			metaValue.setUnits(arg0);
 			transducers.add(metaValue);
-		}
+		}*/
 
 		device.setTransducers(transducers);
 
@@ -98,7 +157,7 @@ public class CreateSoxDevice {
 				con.createNode(deviceName, device, AccessModel.open,
 						PublishModel.open);
 				debugMSG("done!");
-
+				
 				return true;
 			} catch (NoResponseException | XMPPErrorException
 					| NotConnectedException e) {
