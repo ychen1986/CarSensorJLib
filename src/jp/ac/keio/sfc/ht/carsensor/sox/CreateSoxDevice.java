@@ -60,7 +60,7 @@ public class CreateSoxDevice {
 
 			 String deviceName = "carsensor"+String.format("%03d",
 			 i)+"_100Hz";
-			//String deviceName = "carsensor" + String.format("%03d", i);
+			//String deviceName = "carsensor" + String.format("%03d", i)
 			createNewTypedDevice(deviceName);
 		}
 	}
