@@ -47,12 +47,20 @@ public class CreateSoxDevice {
 			}
 			debugMSG("Done!");
 		}
-		
+		// createNewTypedDevice("carsensor_test");
+		/*
+		 * createNewTypedDevice("carsensor026_replay");
+		 * createNewTypedDevice("carsensor027_replay");
+		 * createNewTypedDevice("carsensor029_replay");
+		 * createNewTypedDevice("carsensor030_replay");
+		 * createNewTypedDevice("carsensor031_replay");
+		 * createNewTypedDevice("carsensor033_replay");
+		 */
 		for (int i = 0; i <= 100; i++) {
 
-			// String deviceName = "carsensor"+String.format("%03d",
-			// i)+"_100Hz";
-			String deviceName = "carsensor" + String.format("%03d", i);
+			 String deviceName = "carsensor"+String.format("%03d",
+			 i)+"_100Hz";
+			//String deviceName = "carsensor" + String.format("%03d", i)
 			createNewTypedDevice(deviceName);
 		}
 	}
