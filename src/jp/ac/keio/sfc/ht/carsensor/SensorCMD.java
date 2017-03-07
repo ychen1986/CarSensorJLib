@@ -381,7 +381,9 @@ public abstract class SensorCMD extends Object {
 		return msg;
 	}
 	public static double acceleration(int raw){
-		return raw*32000.0/65535;
+		//return raw*32000.0/65535;
+		return raw * 32000.0 * 0.00980665 / 65535; // change units from mg to
+		// m/s^2
 	}
 	public static double angularVelocity(int raw){
 		return raw*4000.0/65535;
