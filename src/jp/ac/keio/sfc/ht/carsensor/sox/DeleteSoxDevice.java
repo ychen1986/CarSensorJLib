@@ -1,4 +1,4 @@
-package jp.ac.keio.sfc.ht.carsensor.example;
+package jp.ac.keio.sfc.ht.carsensor.sox;
 
 
 import java.io.IOException;
@@ -19,25 +19,25 @@ import jp.ac.keio.sfc.ht.sox.protocol.Transducer;
 import jp.ac.keio.sfc.ht.sox.soxlib.SoxConnection;
 
 
-public class Delete {
+public class DeleteSoxDevice {
 
 	public static void main(String[] args){
-			new Delete();
+			new DeleteSoxDevice();
 		
 	}
 	
-	public Delete() {
+	public DeleteSoxDevice() {
 		
 		String prefix = "carsensor";
 		String sensorName;
 		SoxConnection con;
 
-		//for(int i=0; i<= 100; i++){
-			//sensorName = prefix + String.format("%03d", i)+"_100Hz";
-			sensorName="carsensor049_100Hz";
+		for(int i=0; i<= 100; i++){
+			sensorName = prefix + String.format("%03d", i);//+"_100Hz";
+			//sensorName="carsensor049_100Hz";
 			try {
 				System.out.println("Connecting to Sox");
-				con = new SoxConnection("soxfujisawa.ht.sfc.keio.ac.jp","guest","miroguest", false);
+				con = new SoxConnection("nictsox-lv1.ht.sfc.keio.ac.jp","htcarsensor","carsensor", false);
 				System.out.println("Delete  device " + sensorName);
 				con.deleteNode(sensorName);
 				System.out.println("Done");
@@ -60,7 +60,7 @@ public class Delete {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		//}
+		}
 		
 		
 		
