@@ -21,8 +21,8 @@ public class SensorInitializationErrorException extends Exception {
 		// TODO Auto-generated constructor stub
 	}
 
-	public SensorInitializationErrorException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
+	public SensorInitializationErrorException(String message, Throwable cause, boolean enableSuppression,
+			boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 		// TODO Auto-generated constructor stub
 	}

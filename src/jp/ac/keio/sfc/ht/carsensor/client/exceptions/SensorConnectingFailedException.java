@@ -21,8 +21,8 @@ public class SensorConnectingFailedException extends Exception {
 		// TODO Auto-generated constructor stub
 	}
 
-	public SensorConnectingFailedException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
+	public SensorConnectingFailedException(String message, Throwable cause, boolean enableSuppression,
+			boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 		// TODO Auto-generated constructor stub
 	}

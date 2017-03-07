@@ -11,20 +11,17 @@ import java.util.TooManyListenersException;
 
 public class SensorSerialReaderTest extends SensorSerialReader {
 
-	public SensorSerialReaderTest(String _portName, boolean _debuggable)
-			throws UnsupportedCommOperationException, NoSuchPortException,
-			PortInUseException, IOException, TooManyListenersException {
+	public SensorSerialReaderTest(String _portName, boolean _debuggable) throws UnsupportedCommOperationException,
+			NoSuchPortException, PortInUseException, IOException, TooManyListenersException {
 		super(_portName, _debuggable);
 		// TODO Auto-generated constructor stub
 	}
 
-	public SensorSerialReaderTest(String portName)
-			throws UnsupportedCommOperationException, NoSuchPortException,
+	public SensorSerialReaderTest(String portName) throws UnsupportedCommOperationException, NoSuchPortException,
 			PortInUseException, IOException, TooManyListenersException {
 		super(portName);
 		// TODO Auto-generated constructor stub
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -35,24 +32,23 @@ public class SensorSerialReaderTest extends SensorSerialReader {
 		printBytesData(in);
 
 	}
-	void printBytesData(InputStream in){
+
+	void printBytesData(InputStream in) {
 		int data;
 
-    try
-    {
-        while ( ( data = in.read()) > -1 )
-        {    
-            
-            String hex = byteToHexString((byte)data);
-            if(hex.equals("9A")){
-            		System.out.print('\n');
-            }
-            	System.out.print(hex);
+		try {
+			while ((data = in.read()) > -1) {
 
-        }
-    }catch ( IOException e )
-    {
-        e.printStackTrace();
-    }}
+				String hex = byteToHexString((byte) data);
+				if (hex.equals("9A")) {
+					System.out.print('\n');
+				}
+				System.out.print(hex);
+
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 }

@@ -17,15 +17,16 @@ import jp.ac.keio.sfc.ht.sox.protocol.TransducerValue;
 
 public class SensorEvent extends EventObject {
 
-	private  byte eventType;
+	private byte eventType;
 	private static final long serialVersionUID = 1L;
-	private  byte[] cmd;
-	private  long timestamp; 
-	private  String msg;
+	private byte[] cmd;
+	private long timestamp;
+	private String msg;
 
 	private Map<String, String> datas;
 
-	public SensorEvent(Object source, byte _eventType, byte[] _cmd, String _msg, Map<String, String> _datas, long _timestamp) {
+	public SensorEvent(Object source, byte _eventType, byte[] _cmd, String _msg, Map<String, String> _datas,
+			long _timestamp) {
 		super(source);
 		this.msg = _msg;
 		this.cmd = _cmd;
@@ -33,13 +34,15 @@ public class SensorEvent extends EventObject {
 		this.eventType = _eventType;
 		this.timestamp = _timestamp;
 	}
+
 	public SensorEvent(byte _eventType, byte[] _cmd, String _msg, Map<String, String> _datas, long _timestamp) {
-		
-		this(new Object(),  _eventType,  _cmd,  _msg,  _datas,  _timestamp);
+
+		this(new Object(), _eventType, _cmd, _msg, _datas, _timestamp);
 
 	}
+
 	public SensorEvent(Object source, byte _eventType, byte[] _cmd, String _msg, Map<String, String> _datas) {
-		
+
 		super(source);
 
 		this.msg = _msg;
@@ -48,27 +51,28 @@ public class SensorEvent extends EventObject {
 		this.eventType = _eventType;
 		this.timestamp = System.currentTimeMillis();
 	}
-	public SensorEvent( byte _eventType, byte[] _cmd, String _msg, Map<String, String> _datas) {
-		this( new Object(), _eventType, _cmd,  _msg,  _datas);
+
+	public SensorEvent(byte _eventType, byte[] _cmd, String _msg, Map<String, String> _datas) {
+		this(new Object(), _eventType, _cmd, _msg, _datas);
 	}
 
-
-	public byte getEventType(){
+	public byte getEventType() {
 		return eventType;
 	}
+
 	public long getTimestamp() {
 		return timestamp;
 	}
-	
+
 	public String getTimestampString() {
-		 
+
 		return Utility.getFormatedTimestamp(timestamp);
 	}
 
-
-	public byte[] getCmd(){
+	public byte[] getCmd() {
 		return cmd;
 	}
+
 	public String getMsg() {
 		return msg;
 	}
@@ -77,15 +81,16 @@ public class SensorEvent extends EventObject {
 		return datas;
 
 	}
-	
-	
-	public boolean isResponse(){
+
+	public boolean isResponse() {
 		return SensorCMD.isResponse(eventType);
 	}
-	public boolean isEvent(){
+
+	public boolean isEvent() {
 		return SensorCMD.isEvent(eventType);
 	}
-	public void setTimestamp(long time){
+
+	public void setTimestamp(long time) {
 		timestamp = time;
 	}
 
@@ -93,37 +98,39 @@ public class SensorEvent extends EventObject {
 	protected Object clone() throws CloneNotSupportedException {
 		// TODO Auto-generated method stub
 		SensorEvent cloned = (SensorEvent) super.clone();
-		cloned.timestamp =	this.timestamp ;
+		cloned.timestamp = this.timestamp;
 		cloned.datas = this.datas;
 		cloned.eventType = this.eventType;
 		return cloned;
-		
+
 	}
-	public String getSensorSerialNo(){
+
+	public String getSensorSerialNo() {
 		String no = datas.get("Serial Number");
-		if(no == null){
+		if (no == null) {
 			return "Serial number not found!";
-		}else{
+		} else {
 			return no;
 		}
 	}
+
 	@Override
 	public String toString() {
-		return "SensorEvent [msg=\n" + msg + getTimestampString()  +"\n]";
+		return "SensorEvent [msg=\n" + msg + getTimestampString() + "\n]";
 	}
 
 	public List<TransducerValue> toTranducerValueList() {
 		// TODO Auto-generated method stub
 		List<TransducerValue> values = new ArrayList<TransducerValue>();
-		for(Map.Entry<String, String> e : datas.entrySet()){
+		for (Map.Entry<String, String> e : datas.entrySet()) {
 			TransducerValue value = new TransducerValue();
 			value.setTimestamp(getTimestampString());
 			value.setId(e.getKey());
-			//value.setTypedValue(e.getValue());
+			// value.setTypedValue(e.getValue());
 			value.setRawValue(e.getValue());
 			values.add(value);
 		}
 		return values;
 	}
-	
+
 }

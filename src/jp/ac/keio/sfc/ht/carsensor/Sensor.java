@@ -10,11 +10,11 @@ import java.util.Map;
 import jp.ac.keio.sfc.ht.carsensor.protocol.RawSensorData;
 import jp.ac.keio.sfc.ht.carsensor.protocol.SensorEvent;
 
-public abstract  class Sensor extends SensorCMD {
+public abstract class Sensor extends SensorCMD {
 	protected int serial;
 	protected String softwareVersion;
 	protected String modelName;
-	protected int Vs = - 100;
+	protected int Vs = -100;
 	protected double VsTemp = 0.0;
 	protected boolean debuggable = false;
 	protected boolean GPS_Status = false;
@@ -22,32 +22,31 @@ public abstract  class Sensor extends SensorCMD {
 	public boolean isGPSAvailable() {
 		return GPS_Status;
 	}
-	
-	public int getSerial(){
+
+	public int getSerial() {
 		return serial;
 	}
-	
 
 	public Sensor() {
 		// TODO Auto-generated constructor stub
 		super();
 
 	}
+
 	/***
 	 * 
-	 * @return true if softwareVersion, modelName, Vs, VsTemp are all initialized; false, otherwise.
+	 * @return true if softwareVersion, modelName, Vs, VsTemp are all
+	 *         initialized; false, otherwise.
 	 */
-	public boolean isInitialized(){
-		if ( softwareVersion  != null && 
-				modelName != null &&
-				Vs != -100 &&
-				VsTemp != 0.0)
+	public boolean isInitialized() {
+		if (softwareVersion != null && modelName != null && Vs != -100 && VsTemp != 0.0)
 			return true;
-		else 
+		else
 			return false;
-		
+
 	}
-	public String toString(){
+
+	public String toString() {
 		String msg = "";
 		msg += "Serial number: " + serial + "\n";
 		msg += "Software version: " + softwareVersion + "\n";
@@ -56,46 +55,48 @@ public abstract  class Sensor extends SensorCMD {
 		msg += "Premeasured temperature: " + VsTemp + "\n";
 		msg += "Debug status: " + debuggable + "\n";
 		msg += "GSP status: " + GPS_Status + "\n";
-		
+
 		return msg;
-		
+
 	}
+
 	/**
 	 * 
-	 * @param data:  a RawSensorData object containing the raw byte array and the timestamp
+	 * @param data:
+	 *            a RawSensorData object containing the raw byte array and the
+	 *            timestamp
 	 * @return a SensorEvent according to data
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	protected SensorEvent parse(RawSensorData data) throws Exception {
-		
+
 		SensorEvent sev = null;
 		if (isResponse(data.getCMDCode())) {
 			sev = parseResponse(data);
 		} else if (isEvent(data.getCMDCode())) {
 			sev = parseEvent(data);
 		} else {
-			throw new Exception("Invalid command code: "
-					+ bytesToHexString(data.cmd));
+			throw new Exception("Invalid command code: " + bytesToHexString(data.cmd));
 		}
 		return sev;
 	}
 
-	public void init(){
+	public void init() {
 		try {
 			stopSensorWithFan();
 			Thread.sleep(1000);
 			getSensorInfo();
 			Thread.sleep(1000);
 			getVS();
-			//Thread.sleep(5000);
-		} catch (IOException | InterruptedException  e) {
+			// Thread.sleep(5000);
+		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
+
 	}
-	public abstract  void sendCommand(byte[] cmd) throws IOException ;
+
+	public abstract void sendCommand(byte[] cmd) throws IOException;
 
 	public void sendCommandWithBCC(byte[] cmd) throws IOException {
 		byte[] bcc = { XorBCCGenerating(cmd) };
@@ -112,7 +113,7 @@ public abstract  class Sensor extends SensorCMD {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	public void getVS() throws IOException {
@@ -124,7 +125,7 @@ public abstract  class Sensor extends SensorCMD {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	public void getGPSStatus() throws IOException {
@@ -153,40 +154,50 @@ public abstract  class Sensor extends SensorCMD {
 	}
 
 	public void stopSensor() throws IOException {
-		if(debuggable){
+		if (debuggable) {
 			System.out.println("Stop sensing!...");
 		}
 		stopSensorWithFan();
 	}
+
 	protected static final Map<Byte, Integer> ParaSizeMap;
-	static{
-			ParaSizeMap = new HashMap<Byte, Integer>();
-			ParaSizeMap.put(EVENT_DATA_A,  EVENT_DATA_A_PARA_SIZE);
-			ParaSizeMap.put(EVENT_DATA_B, EVENT_DATA_B_PARA_SIZE);
-			ParaSizeMap.put(RES_INFO, RES_INFO_PARA_SIZE);
-			ParaSizeMap.put(RES_VS, RES_VS_PARA_SIZE);
-			ParaSizeMap.put(RES_CMD, RES_CMD_PARA_SIZE);
-			ParaSizeMap.put(RES_GPS, RES_GPS_PARA_SIZE);
-			ParaSizeMap.put(EVENT_GPS_START, EVENT_GPS_START_PARA_SIZE);
+	static {
+		ParaSizeMap = new HashMap<Byte, Integer>();
+		ParaSizeMap.put(EVENT_DATA_A, EVENT_DATA_A_PARA_SIZE);
+		ParaSizeMap.put(EVENT_DATA_B, EVENT_DATA_B_PARA_SIZE);
+		ParaSizeMap.put(RES_INFO, RES_INFO_PARA_SIZE);
+		ParaSizeMap.put(RES_VS, RES_VS_PARA_SIZE);
+		ParaSizeMap.put(RES_CMD, RES_CMD_PARA_SIZE);
+		ParaSizeMap.put(RES_GPS, RES_GPS_PARA_SIZE);
+		ParaSizeMap.put(EVENT_GPS_START, EVENT_GPS_START_PARA_SIZE);
 	}
-	public static int getParaSize(byte cmd) throws Exception{
-		switch (cmd){
-		case EVENT_DATA_A: 
+
+	public static int getParaSize(byte cmd) throws Exception {
+		switch (cmd) {
+		case EVENT_DATA_A:
 			return EVENT_DATA_A_PARA_SIZE;
-	
-		case EVENT_DATA_B: 
+
+		case EVENT_DATA_B:
 			return EVENT_DATA_B_PARA_SIZE;
-		case RES_INFO: return RES_INFO_PARA_SIZE;
-		case RES_VS: return RES_VS_PARA_SIZE;
-		case RES_CMD: return RES_CMD_PARA_SIZE;
-		case RES_GPS: return RES_GPS_PARA_SIZE;
-		case EVENT_GPS_START: return EVENT_GPS_START_PARA_SIZE;
-		//TODO don't forget to add code here  if a new response or event is added.
-		default: byte[] cmds = {cmd};
-			throw new Exception("Command code "+bytesToHexString(cmds)+"not found!");
-		
+		case RES_INFO:
+			return RES_INFO_PARA_SIZE;
+		case RES_VS:
+			return RES_VS_PARA_SIZE;
+		case RES_CMD:
+			return RES_CMD_PARA_SIZE;
+		case RES_GPS:
+			return RES_GPS_PARA_SIZE;
+		case EVENT_GPS_START:
+			return EVENT_GPS_START_PARA_SIZE;
+		// TODO don't forget to add code here if a new response or event is
+		// added.
+		default:
+			byte[] cmds = { cmd };
+			throw new Exception("Command code " + bytesToHexString(cmds) + "not found!");
+
 		}
 	}
+
 	protected SensorEvent responseGPS(RawSensorData data) {
 		byte[] cmd = data.cmd;
 		String msg = "GPS Response:";
@@ -229,24 +240,22 @@ public abstract  class Sensor extends SensorCMD {
 			// byte[] buffer = Arrays.copyOfRange(cmd, offset,
 			// offset += RES_VS_VOL_SIZE);
 			int softVersion = 1;
-			if(this.softwareVersion != null){
-				softVersion =  Integer.parseInt(this.softwareVersion);
+			if (this.softwareVersion != null) {
+				softVersion = Integer.parseInt(this.softwareVersion);
 			}
-			if(softVersion < 1){
+			if (softVersion < 1) {
 				this.Vs = bytesToInt(cmd, offset, offset += RES_VS_VOL_SIZE);
 				// byte[] buffer = Arrays.copyOfRange(cmd, offset,
 				// offset += RES_VS_TEMP_SIZE);
-				this.VsTemp = bytesToSignedInt(cmd, offset,
-						offset += RES_VS_TEMP_SIZE) * 0.1;
-				
-			}else {
+				this.VsTemp = bytesToSignedInt(cmd, offset, offset += RES_VS_TEMP_SIZE) * 0.1;
+
+			} else {
 				this.Vs = littleEndianBytesToInt(cmd, offset, offset += RES_VS_VOL_SIZE);
 				// byte[] buffer = Arrays.copyOfRange(cmd, offset,
 				// offset += RES_VS_TEMP_SIZE);
-				this.VsTemp = littleEndianBytesToSignedInt(cmd, offset,
-						offset += RES_VS_TEMP_SIZE) * 0.1;
+				this.VsTemp = littleEndianBytesToSignedInt(cmd, offset, offset += RES_VS_TEMP_SIZE) * 0.1;
 			}
-			
+
 			/*
 			 * DecimalFormat formatter = new DecimalFormat("##.##",
 			 * DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -277,8 +286,7 @@ public abstract  class Sensor extends SensorCMD {
 		} else {
 			int offset = 1;
 
-			String serialNo = bytesToUTF8String(cmd, offset,
-					offset += RES_INFO_SERIAL_NO_SIZE);
+			String serialNo = bytesToUTF8String(cmd, offset, offset += RES_INFO_SERIAL_NO_SIZE);
 			this.serial = Integer.parseInt(serialNo);
 			msg += "Serial No: " + serialNo + "\n";
 			datas.put("Serial Number", serialNo);
@@ -289,13 +297,11 @@ public abstract  class Sensor extends SensorCMD {
 			 * String softVersion = bytesToUTF8String(cmd, offset, offset +=
 			 * RES_INFO_SOFT_VERSION_SIZE);
 			 */
-			String softVersion = bytesToUTF8String(cmd, offset,
-					offset += RES_INFO_SOFT_VERSION_SIZE);
+			String softVersion = bytesToUTF8String(cmd, offset, offset += RES_INFO_SOFT_VERSION_SIZE);
 			this.softwareVersion = softVersion;
 			msg += "Software vesion: " + softVersion + "\n";
 			datas.put("Software Version", softVersion);
-			String modelName = bytesToUTF8String(cmd, offset,
-					offset += RES_INFO_MODEL_SIZE);
+			String modelName = bytesToUTF8String(cmd, offset, offset += RES_INFO_MODEL_SIZE);
 			this.modelName = modelName;
 			datas.put("Model Name", modelName);
 			msg += "Sensor model: " + modelName + "\n";
@@ -386,12 +392,10 @@ public abstract  class Sensor extends SensorCMD {
 			msg += "Parameter size is illegal! " + cmd.length;
 		} else {
 			int offset = 1;
-			String serialNo = littleEndianBytesToDecimalString(cmd, offset,
-					offset += EVENT_DATA_A_SERO_SIZE);
+			String serialNo = littleEndianBytesToDecimalString(cmd, offset, offset += EVENT_DATA_A_SERO_SIZE);
 			msg += "Serial number: " + serialNo + "\n";
 			datas.put("Serial Number", serialNo);
-			String dataIndex = littleEndianBytesToDecimalString(cmd, offset,
-					offset += EVENT_DATA_A_DATA_INDEX_SIZE);
+			String dataIndex = littleEndianBytesToDecimalString(cmd, offset, offset += EVENT_DATA_A_DATA_INDEX_SIZE);
 			msg += "Data index: " + dataIndex + "\n";
 			datas.put("Data Index", dataIndex);
 			if (cmd.length == EVENT_DATA_A_PARA_SIZE + 1) {
@@ -409,147 +413,136 @@ public abstract  class Sensor extends SensorCMD {
 			/***
 			 * Parse and convert acceleration data
 			 */
-			double accX = acceleration(littleEndianBytesToSignedInt(cmd,
-					offset, offset += EVENT_DATA_A_ACC_X_SIZE));
+			double accX = acceleration(littleEndianBytesToSignedInt(cmd, offset, offset += EVENT_DATA_A_ACC_X_SIZE));
 			msg += "Acceleration_X: " + accX + "\n";
 			datas.put("Acceleration X", Double.toString(accX));
 
-			double accY = acceleration(littleEndianBytesToSignedInt(cmd,
-					offset, offset += EVENT_DATA_A_ACC_Y_SIZE));
+			double accY = acceleration(littleEndianBytesToSignedInt(cmd, offset, offset += EVENT_DATA_A_ACC_Y_SIZE));
 			msg += "Acceleration_Y: " + accY + "\n";
 			datas.put("Acceleration Y", Double.toString(accY));
 
-			double accZ = acceleration(littleEndianBytesToSignedInt(cmd,
-					offset, offset += EVENT_DATA_A_ACC_Z_SIZE));
+			double accZ = acceleration(littleEndianBytesToSignedInt(cmd, offset, offset += EVENT_DATA_A_ACC_Z_SIZE));
 			msg += "Acceleration_Z: " + accZ + "\n";
 			datas.put("Acceleration Z", Double.toString(accZ));
 
 			/***
 			 * Parse and convert angular velocity data
 			 */
-			double anve_X = angularVelocity(littleEndianBytesToSignedInt(cmd,
-					offset, offset += EVENT_DATA_A_ANVE_X_SIZE));
+			double anve_X = angularVelocity(
+					littleEndianBytesToSignedInt(cmd, offset, offset += EVENT_DATA_A_ANVE_X_SIZE));
 			msg += "Angular_Velocity_X: " + anve_X + "\n";
 			datas.put("Angular Velocity X", Double.toString(anve_X));
 
-			double anve_Y = angularVelocity(littleEndianBytesToSignedInt(cmd,
-					offset, offset += EVENT_DATA_A_ANVE_Y_SIZE));
+			double anve_Y = angularVelocity(
+					littleEndianBytesToSignedInt(cmd, offset, offset += EVENT_DATA_A_ANVE_Y_SIZE));
 			msg += "Angular_Velocity_Y: " + anve_Y + "\n";
 			datas.put("Angular Velocity Y", Double.toString(anve_Y));
 
-			double anve_Z = angularVelocity(littleEndianBytesToSignedInt(cmd,
-					offset, offset += EVENT_DATA_A_ANVE_Z_SIZE));
+			double anve_Z = angularVelocity(
+					littleEndianBytesToSignedInt(cmd, offset, offset += EVENT_DATA_A_ANVE_Z_SIZE));
 			msg += "Angular_Velocity_Z: " + anve_Z + "\n";
 			datas.put("Angular Velocity Z", Double.toString(anve_Z));
 
 			/***
 			 * Parse and convert geomagnetism data
 			 */
-			double geomagX = geomagnetism(littleEndianBytesToSignedInt(cmd,
-					offset, offset += EVENT_DATA_A_GEMG_X_SIZE));
+			double geomagX = geomagnetism(
+					littleEndianBytesToSignedInt(cmd, offset, offset += EVENT_DATA_A_GEMG_X_SIZE));
 			msg += "Geomagnetism_X: " + geomagX + "\n";
 			datas.put("Geomagnetism X", Double.toString(geomagX));
 
-			double geomagY = geomagnetism(littleEndianBytesToSignedInt(cmd,
-					offset, offset += EVENT_DATA_A_GEMG_Y_SIZE));
+			double geomagY = geomagnetism(
+					littleEndianBytesToSignedInt(cmd, offset, offset += EVENT_DATA_A_GEMG_Y_SIZE));
 			msg += "Geomagnetism_Y: " + geomagY + "\n";
 			datas.put("Geomagnetism Y", Double.toString(geomagY));
 
-			double geomagZ = geomagnetism(littleEndianBytesToSignedInt(cmd,
-					offset, offset += EVENT_DATA_A_GEMG_Z_SIZE));
+			double geomagZ = geomagnetism(
+					littleEndianBytesToSignedInt(cmd, offset, offset += EVENT_DATA_A_GEMG_Z_SIZE));
 			msg += "Geomagnetism_Z: " + geomagZ + "\n";
 			datas.put("Geomagnetism Z", Double.toString(geomagZ));
 			/***
 			 * Parse and convert atmospheric and environmental data data
 			 */
-			double atmoPress = atmosphericPressure(littleEndianBytesToInt(cmd,
-					offset, offset += EVENT_DATA_A_ATOMS_PRSR_SIZE));
+			double atmoPress = atmosphericPressure(
+					littleEndianBytesToInt(cmd, offset, offset += EVENT_DATA_A_ATOMS_PRSR_SIZE));
 			msg += "Atmospheric Pressures: " + atmoPress + "\n";
 			datas.put("Atmospheric Pressures", Double.toString(atmoPress));
 
-			double atmoHum = atmosphericHumidity(littleEndianBytesToInt(cmd,
-					offset, offset += EVENT_DATA_A_ATOMS_HUM_SIZE));
+			double atmoHum = atmosphericHumidity(
+					littleEndianBytesToInt(cmd, offset, offset += EVENT_DATA_A_ATOMS_HUM_SIZE));
 			msg += "Atmospheric Humidity: " + atmoHum + "\n";
 			datas.put("Atmospheric Humidity", Double.toString(atmoHum));
 
-			double atmoTemp = atmosphericTemperature(littleEndianBytesToInt(
-					cmd, offset, offset += EVENT_DATA_A_ATOMS_TEMP_SIZE));
+			double atmoTemp = atmosphericTemperature(
+					littleEndianBytesToInt(cmd, offset, offset += EVENT_DATA_A_ATOMS_TEMP_SIZE));
 			msg += "Atmospheric Temperature: " + atmoTemp + "\n";
 			datas.put("Atmospheric Temperature", Double.toString(atmoTemp));
 
-			double uv_A = UV_A(littleEndianBytesToSignedInt(cmd, offset,
-					offset += EVENT_DATA_A_UV_SIZE));
+			double uv_A = UV_A(littleEndianBytesToSignedInt(cmd, offset, offset += EVENT_DATA_A_UV_SIZE));
 			msg += "UV: " + uv_A + "\n";
 			datas.put("UV", Double.toString(uv_A));
 
-			double illu = illuminance(littleEndianBytesToSignedInt(cmd, offset,
-					offset += EVENT_DATA_A_ILLU_SIZE));
+			double illu = illuminance(littleEndianBytesToSignedInt(cmd, offset, offset += EVENT_DATA_A_ILLU_SIZE));
 			msg += "Illuminace: " + illu + "\n";
 			datas.put("Illuminace", Double.toString(illu));
-			
-			//PM2.5
-			double v0 = PM25(littleEndianBytesToInt(cmd, offset,
-					offset + EVENT_DATA_A_PM25_SIZE));
+
+			// PM2.5
+			double v0 = PM25(littleEndianBytesToInt(cmd, offset, offset + EVENT_DATA_A_PM25_SIZE));
 			double alpha = 0.6;
 			double beta;
-			if(atmoHum > 50.0){
-				beta = 1-0.01467*(atmoHum - 50);
-			}else{
+			if (atmoHum > 50.0) {
+				beta = 1 - 0.01467 * (atmoHum - 50);
+			} else {
 				beta = 1;
 			}
 			double vs = 0;
-			if(this.Vs > -50){
-				if(atmoTemp <= 40){
+			if (this.Vs > -50) {
+				if (atmoTemp <= 40) {
 					vs = this.Vs - 6 * (this.VsTemp - atmoTemp);
-				}else{
-					vs = this.Vs - 1.5* (this.VsTemp - atmoTemp);
+				} else {
+					vs = this.Vs - 1.5 * (this.VsTemp - atmoTemp);
 				}
 			}
-			//double pm25 = alpha * beta * (v0 - vs);
-			
-			
-			
-			short vDiff = (short) ((v0 - vs)*4095/6600);
-			
+			// double pm25 = alpha * beta * (v0 - vs);
+
+			short vDiff = (short) ((v0 - vs) * 4095 / 6600);
+
 			ByteBuffer buffer = ByteBuffer.allocate(2);
 			buffer.order(ByteOrder.LITTLE_ENDIAN);
 			buffer.putShort(vDiff);
 			byte[] a = buffer.array();
 
-			
-		    
 			cmd[offset] = a[0];
 			cmd[offset + 1] = a[1];
-			//int ln = cmd.length;	
-			//cmd[ln-1] = XorBCCGenerating(cmd, ln-1);
-			
-			//double vdiff2 = littleEndianBytesToSignedInt(a,0,2);
-			//double vdiff3 = littleEndianBytesToSignedInt(cmd, offset,
-			//		offset + EVENT_DATA_A_PM25_SIZE);
-			double vd =  PM25(littleEndianBytesToSignedInt(cmd, offset,
-					offset + EVENT_DATA_A_PM25_SIZE));
-			double pm25 = alpha * beta *vd;
-			//datas.put("PM2.5-2", Double.toString(pm252));
-			//msg += "vd: " + vd + "\n";
-			//msg += "vdiff: " + vDiff + "\n";
-			//msg += "vdiff2: " + vdiff2 + "\n";
-			///msg += "vdiff3: " + vdiff3 + "\n";
-			//msg += "a[0]: " + a[0] + "\n";
-			//msg += "a[1]: " + a[1] + "\n";
-			//msg += "cmd[offset]: " + cmd[offset] + "\n";
-			//msg += "cmd[offset + 1]: " + cmd[offset + 1] + "\n";
-			
-			//msg += "PM2.5test: " + pm25test + "\n";
-			//msg += "this.Vs: " + this.Vs + "\n";
-			//msg += "this.VsTemp: " + this.VsTemp + "\n";
+			// int ln = cmd.length;
+			// cmd[ln-1] = XorBCCGenerating(cmd, ln-1);
+
+			// double vdiff2 = littleEndianBytesToSignedInt(a,0,2);
+			// double vdiff3 = littleEndianBytesToSignedInt(cmd, offset,
+			// offset + EVENT_DATA_A_PM25_SIZE);
+			double vd = PM25(littleEndianBytesToSignedInt(cmd, offset, offset + EVENT_DATA_A_PM25_SIZE));
+			double pm25 = alpha * beta * vd;
+			// datas.put("PM2.5-2", Double.toString(pm252));
+			// msg += "vd: " + vd + "\n";
+			// msg += "vdiff: " + vDiff + "\n";
+			// msg += "vdiff2: " + vdiff2 + "\n";
+			/// msg += "vdiff3: " + vdiff3 + "\n";
+			// msg += "a[0]: " + a[0] + "\n";
+			// msg += "a[1]: " + a[1] + "\n";
+			// msg += "cmd[offset]: " + cmd[offset] + "\n";
+			// msg += "cmd[offset + 1]: " + cmd[offset + 1] + "\n";
+
+			// msg += "PM2.5test: " + pm25test + "\n";
+			// msg += "this.Vs: " + this.Vs + "\n";
+			// msg += "this.VsTemp: " + this.VsTemp + "\n";
 			msg += "PM2.5: " + pm25 + "\n";
-			//msg += "OFFset" + offset + "\n";
-			//msg += "cmd.length" + cmd.length + "\n";
-			//msg += "V0: " + v0 + "\n";
-			//msg += "Vs: " + vs + "\n";
-			
+			// msg += "OFFset" + offset + "\n";
+			// msg += "cmd.length" + cmd.length + "\n";
+			// msg += "V0: " + v0 + "\n";
+			// msg += "Vs: " + vs + "\n";
+
 			datas.put("PM2.5", Double.toString(pm25));
-			
+
 		}
 		return new SensorEvent(this, EVENT_DATA_A, cmd, msg, datas, data.time);
 	}
@@ -564,38 +557,34 @@ public abstract  class Sensor extends SensorCMD {
 		msg += "\n";
 		Map<String, String> datas = new HashMap<String, String>();
 		// String hexString = bytesToHex(cmd);
-		
-			int offset = 1;
-			String serialNo = littleEndianBytesToDecimalString(cmd, offset,
-					offset += EVENT_DATA_C_SERO_SIZE);
-			msg += "Serial number: " + serialNo + "\n";
-			datas.put("Serial Number", serialNo);
-			String dataIndex = littleEndianBytesToDecimalString(cmd, offset,
-					offset += EVENT_DATA_C_DATA_INDEX_SIZE);
 
-			msg += "Data index: " + dataIndex + "\n";
-			datas.put("Data Index", dataIndex);
-			String gpsData = "";
-			
-				/***
-				 * Parse and identify the error message
-				 */
-				String errMsg = identifyErrFlag(cmd[offset]);
-				if (errMsg != null) {
-					datas.put("Error Message", errMsg);
-					msg += errMsg;
-				}
-				offset += EVENT_DATA_C_ERR_FLAG_SIZE;
-				offset += EVENT_DATA_C_GPS_DATA_SIZE;
-				gpsData = bytesToUTF8String(cmd, offset,
-						cmd.length-1);
+		int offset = 1;
+		String serialNo = littleEndianBytesToDecimalString(cmd, offset, offset += EVENT_DATA_C_SERO_SIZE);
+		msg += "Serial number: " + serialNo + "\n";
+		datas.put("Serial Number", serialNo);
+		String dataIndex = littleEndianBytesToDecimalString(cmd, offset, offset += EVENT_DATA_C_DATA_INDEX_SIZE);
 
-			
-			datas.put("GPS Sentence", gpsData);
+		msg += "Data index: " + dataIndex + "\n";
+		datas.put("Data Index", dataIndex);
+		String gpsData = "";
 
-			msg += "GPS data: " + gpsData + "\n";
-		
-		return new SensorEvent(this, EVENT_DATA_C, cmd, msg, datas,data.time);
+		/***
+		 * Parse and identify the error message
+		 */
+		String errMsg = identifyErrFlag(cmd[offset]);
+		if (errMsg != null) {
+			datas.put("Error Message", errMsg);
+			msg += errMsg;
+		}
+		offset += EVENT_DATA_C_ERR_FLAG_SIZE;
+		offset += EVENT_DATA_C_GPS_DATA_SIZE;
+		gpsData = bytesToUTF8String(cmd, offset, cmd.length - 1);
+
+		datas.put("GPS Sentence", gpsData);
+
+		msg += "GPS data: " + gpsData + "\n";
+
+		return new SensorEvent(this, EVENT_DATA_C, cmd, msg, datas, data.time);
 
 	}
 
@@ -608,18 +597,15 @@ public abstract  class Sensor extends SensorCMD {
 		msg += "\n";
 		Map<String, String> datas = new HashMap<String, String>();
 		// String hexString = bytesToHex(cmd);
-		if (cmd.length != EVENT_DATA_B_PARA_SIZE + 1
-				&& cmd.length != EVENT_DATA_B_PARA_SIZE) {
+		if (cmd.length != EVENT_DATA_B_PARA_SIZE + 1 && cmd.length != EVENT_DATA_B_PARA_SIZE) {
 			msg += "Parameter size is illegal!";
 
 		} else {
 			int offset = 1;
-			String serialNo = littleEndianBytesToDecimalString(cmd, offset,
-					offset += EVENT_DATA_B_SERO_SIZE);
+			String serialNo = littleEndianBytesToDecimalString(cmd, offset, offset += EVENT_DATA_B_SERO_SIZE);
 			msg += "Serial number: " + serialNo + "\n";
 			datas.put("Serial Number", serialNo);
-			String dataIndex = littleEndianBytesToDecimalString(cmd, offset,
-					offset += EVENT_DATA_B_DATA_INDEX_SIZE);
+			String dataIndex = littleEndianBytesToDecimalString(cmd, offset, offset += EVENT_DATA_B_DATA_INDEX_SIZE);
 			msg += "Data index: " + dataIndex + "\n";
 			datas.put("Data Index", dataIndex);
 			if (cmd.length == EVENT_DATA_B_PARA_SIZE + 1) {
@@ -633,27 +619,17 @@ public abstract  class Sensor extends SensorCMD {
 				}
 				offset += EVENT_DATA_B_ERR_FLAG_SIZE;
 			}
-			
 
-			
-			
-
-			
-			
-			double pm25 = PM25(littleEndianBytesToInt(cmd, offset,
-					offset += EVENT_DATA_A_PM25_SIZE));
+			double pm25 = PM25(littleEndianBytesToInt(cmd, offset, offset += EVENT_DATA_A_PM25_SIZE));
 			msg += "PM2.5: " + pm25 + "\n";
 			datas.put("PM2.5", Double.toString(pm25));
-			double atmoTemp = atmosphericTemperature(littleEndianBytesToInt(
-					cmd, offset, offset += EVENT_DATA_B_ATOMS_TEMP_SIZE));
+			double atmoTemp = atmosphericTemperature(
+					littleEndianBytesToInt(cmd, offset, offset += EVENT_DATA_B_ATOMS_TEMP_SIZE));
 			msg += "Atmospheric Temperature: " + atmoTemp + "\n";
 			datas.put("Atmospheric Temperature", Double.toString(atmoTemp));
-			
-			
-			
 
 		}
-		return new SensorEvent(this, EVENT_DATA_B, cmd, msg, datas,data.time);
+		return new SensorEvent(this, EVENT_DATA_B, cmd, msg, datas, data.time);
 
 	}
 
@@ -685,17 +661,15 @@ public abstract  class Sensor extends SensorCMD {
 	 */
 	/**
 	 * @param in
-	 * @return 
+	 * @return
 	 * @return a byte array containing the next response from the InputStream in
 	 * @throws IOException
 	 */
-	public abstract  void readCommand(InputStream in) throws IOException;
+	public abstract void readCommand(InputStream in) throws IOException;
 
-	
-	
 	protected SensorEvent parseResponse(RawSensorData data) {
 		// String msg = "";
-		
+
 		SensorEvent sev = null;
 		if (debuggable) {
 			System.out.println("Sensor Response Received!\n");
@@ -726,7 +700,7 @@ public abstract  class Sensor extends SensorCMD {
 
 	protected SensorEvent parseEvent(RawSensorData data) {
 		// TODO Auto-generated method stub
-		 
+
 		SensorEvent sev = null;
 		// String msg="";
 		switch (data.getCMDCode()) {

@@ -20,7 +20,7 @@ public class Monitor implements SoxEventListener {
 		// TODO Auto-generated constructor stub
 		SoxConnection soxConnection = null;
 		try {
-			 soxConnection = new SoxConnection(sox, false);
+			soxConnection = new SoxConnection(sox, false);
 		} catch (SmackException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -33,14 +33,14 @@ public class Monitor implements SoxEventListener {
 		}
 		SoxDevice device = null;
 		try {
-			 device = new SoxDevice(soxConnection, deviceName);
+			device = new SoxDevice(soxConnection, deviceName);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		device.subscribe();
 		device.addSoxEventListener(this);
-		
+
 	}
 
 	@Override
@@ -51,25 +51,25 @@ public class Monitor implements SoxEventListener {
 		long delay = 0;
 		String timestamp = null;
 		System.out.println("[info]data received from data node:" + e.getDevice().getName());
-		for(TransducerValue value: values){
+		for (TransducerValue value : values) {
 			System.out.println(value.getId());
 			System.out.println(value.getRawValue());
 			System.out.println(value.getTypedValue());
 			System.out.println(value.getTimestamp());
-//			try{
-//				timestamp = value.getTimestamp();
-//				long send_time = Utility.getUNIXTime(timestamp);
-//				delay = arrival_time - send_time;
-//				break;
-//				
-//			}catch(ParseException pe){
-//				pe.printStackTrace();
-//				continue;
-//			}
-			
-			
+			// try{
+			// timestamp = value.getTimestamp();
+			// long send_time = Utility.getUNIXTime(timestamp);
+			// delay = arrival_time - send_time;
+			// break;
+			//
+			// }catch(ParseException pe){
+			// pe.printStackTrace();
+			// continue;
+			// }
+
 		}
-//		System.out.println(Utility.getFormatedTimestamp(arrival_time)+"    "+ delay);
+		// System.out.println(Utility.getFormatedTimestamp(arrival_time)+" "+
+		// delay);
 
 	}
 
@@ -78,26 +78,27 @@ public class Monitor implements SoxEventListener {
 		String node, sox;
 		sox = "soxfujisawa.ht.sfc.keio.ac.jp";
 		node = "carsensor004";
-		//node = args[0];
-		//node = "FujisawaCarSensorRaw3";
-		//node = "FujisawaCarSensorRaw";
-		if(args.length != 0 ){
-			
+		// node = args[0];
+		// node = "FujisawaCarSensorRaw3";
+		// node = "FujisawaCarSensorRaw";
+		if (args.length != 0) {
+
 			sox = args[0];
 			node = args[1];
-			
-		}else{
+
+		} else {
 			System.out.println("Usage: <soxserver> <nodename>");
 			System.exit(-1);
 		}
 		new Monitor(sox, node);
 		while (true) {
 			try {
-				Thread.sleep(1000*60);
+				Thread.sleep(1000 * 60);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			};
+			}
+			;
 		}
 	}
 

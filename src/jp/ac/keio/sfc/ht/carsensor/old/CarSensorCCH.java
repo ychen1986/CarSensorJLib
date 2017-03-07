@@ -52,7 +52,7 @@ public class CarSensorCCH implements SoxEventListener {
 
 	static void debugMSG(String msg) {
 		if (debug) {
-			System.out.println("[" + (new Date()).toString() + "] "+"[" + CLASS_NAME + "] " + msg);
+			System.out.println("[" + (new Date()).toString() + "] " + "[" + CLASS_NAME + "] " + msg);
 		}
 	}
 
@@ -87,8 +87,7 @@ public class CarSensorCCH implements SoxEventListener {
 			soxUser = prop.getProperty("soxUser", soxUser);
 			soxPasswd = prop.getProperty("soxPasswd", soxPasswd);
 			soxCCHDevice = prop.getProperty("soxCCHDevice", soxCCHDevice);
-			sensorDeviceTable = prop.getProperty("sensorDeviceTable",
-					sensorDeviceTable);
+			sensorDeviceTable = prop.getProperty("sensorDeviceTable", sensorDeviceTable);
 			prop.setProperty("soxServer", soxServer);
 			prop.setProperty("soxUser", soxUser);
 			prop.setProperty("soxPasswd", soxPasswd);
@@ -130,18 +129,18 @@ public class CarSensorCCH implements SoxEventListener {
 
 	}
 
-	public static String typedDeviceName(String nodeName){
+	public static String typedDeviceName(String nodeName) {
 		Pattern rawNodeParttern = Pattern.compile("([a-zA-Z]+)(Raw)(\\d+)");
 		Matcher m = rawNodeParttern.matcher(nodeName);
-		if (m.matches()){
-			String typedNodeName = m.group(1) + "Typed"+m.group(3);
+		if (m.matches()) {
+			String typedNodeName = m.group(1) + "Typed" + m.group(3);
 			return typedNodeName;
-		}else{
+		} else {
 			return nodeName + "Typed";
 		}
-		
-		
+
 	}
+
 	private void connectToSox() {
 
 		for (int i = 1; i <= 5; i++) {
@@ -200,7 +199,7 @@ public class CarSensorCCH implements SoxEventListener {
 			if (value.getId().equals("REQUEST")) {
 				debugMSG("New Request " + value.toString());
 				TransducerValue response = handleRequest(value);
-				
+
 				try {
 					CCHDevice.publishValue(response);
 				} catch (Exception e1) {
@@ -298,7 +297,7 @@ public class CarSensorCCH implements SoxEventListener {
 		String nodeName = prop.getProperty(sensorID);
 
 		if (nodeName == null) {
-			debugMSG("Item for "+sensorID + " not found in "+sensorDeviceTable);
+			debugMSG("Item for " + sensorID + " not found in " + sensorDeviceTable);
 			// The corresponding sensor ID does not exist.
 			// Get the current number of devices registered
 			String total = prop.getProperty("total");
@@ -310,7 +309,7 @@ public class CarSensorCCH implements SoxEventListener {
 			total = Integer.toString(i);
 			// Create a new device name;
 			nodeName = "FujisawaCarSensorRaw" + total;
-			
+
 			// Add it to the table
 			prop.setProperty(sensorID, nodeName);
 			prop.setProperty("total", total);
@@ -337,7 +336,7 @@ public class CarSensorCCH implements SoxEventListener {
 			}
 
 		}
-		debugMSG("Item for "+sensorID + " found in "+sensorDeviceTable + " as " + nodeName);
+		debugMSG("Item for " + sensorID + " found in " + sensorDeviceTable + " as " + nodeName);
 		// Try to create a new device with the nodeName
 		Device device = new Device();
 		device.setId(nodeName);
@@ -350,7 +349,7 @@ public class CarSensorCCH implements SoxEventListener {
 		resp.setName("Response Event");
 		resp.setId("Response Event");
 		transducers.add(resp);
-		
+
 		Transducer gps = new Transducer();
 		gps.setName("GPS Data Event");
 		gps.setId("GPS Data Event");
@@ -367,18 +366,14 @@ public class CarSensorCCH implements SoxEventListener {
 
 		try {
 			debugMSG("Create new device " + nodeName + "...");
-			con.createNode(nodeName, device, AccessModel.open,
-					PublishModel.open);
+			con.createNode(nodeName, device, AccessModel.open, PublishModel.open);
 			response.setId("RESPONSE");
 			response.setRawValue(sensorID + ",CND_SUC");
 			response.setTypedValue(nodeName);
 			response.setCurrentTimestamp();
-			debugMSG("Done!");						
-			
-			
-			
-		} catch (NoResponseException | XMPPErrorException
-				| NotConnectedException e) {
+			debugMSG("Done!");
+
+		} catch (NoResponseException | XMPPErrorException | NotConnectedException e) {
 			if (e instanceof XMPPErrorException) {
 				XMPPError err = ((XMPPErrorException) e).getXMPPError();
 				if (err.getCondition() == XMPPError.Condition.conflict) {
@@ -403,25 +398,19 @@ public class CarSensorCCH implements SoxEventListener {
 		String typedNodeName = typedDeviceName(nodeName);
 		debugMSG("Typed node name: " + typedNodeName);
 		createNewTypedDevice(con, typedNodeName);
-		        
-/*		if(debug){
-        		if (m.matches()) {
-                System.out.println(nodeName + " matches;");
-                for(int i = 1; i <= m.groupCount(); i++){
-                		System.out.println(m.group(i));;
-                }
-                	
-        		} else {
-                System.out.println(nodeName + " does not match.");
-            }
-        }*/
-		
 
-		
+		/*
+		 * if(debug){ if (m.matches()) { System.out.println(nodeName +
+		 * " matches;"); for(int i = 1; i <= m.groupCount(); i++){
+		 * System.out.println(m.group(i));; }
+		 * 
+		 * } else { System.out.println(nodeName + " does not match."); } }
+		 */
+
 		con.disconnect();
 		con = null;
 		return response;
-		
+
 	}
 
 	private void createNewTypedDevice(SoxConnection con, String typedNodeName) {
@@ -433,48 +422,28 @@ public class CarSensorCCH implements SoxEventListener {
 
 		List<Transducer> transducers = new ArrayList<Transducer>();
 
-		String[] dataIds = {"Acceleration X",
-				"Acceleration Y",
-				"Acceleration Z",
-				"Angular Velocity X",
-				"Angular Velocity Y",
-				"Angular Velocity Z",
-				"Geomagnetism X",
-				"Geomagnetism Y",
-				"Geomagnetism Z",
-				"Atmospheric Pressure",
-				"Atmospheric Temperature",
-				"Illuminace",
-				"PM2.5",
-				"Satellite Number", 
-				"Longitude",
-				"Latitude",
-				"Altitude",
-				"Speed",
-				"Cource",				
-				};
-		for(String s: dataIds){
+		String[] dataIds = { "Acceleration X", "Acceleration Y", "Acceleration Z", "Angular Velocity X",
+				"Angular Velocity Y", "Angular Velocity Z", "Geomagnetism X", "Geomagnetism Y", "Geomagnetism Z",
+				"Atmospheric Pressure", "Atmospheric Temperature", "Illuminace", "PM2.5", "Satellite Number",
+				"Longitude", "Latitude", "Altitude", "Speed", "Cource", };
+		for (String s : dataIds) {
 			Transducer metaValue = new Transducer();
 			metaValue.setName(s);
 			metaValue.setId(s);
 			transducers.add(metaValue);
 		}
-		
-		
+
 		device.setTransducers(transducers);
 
-		
 		debugMSG("Create new typed device " + typedNodeName + "...");
-			try {
-				con.createNode(typedNodeName, device, AccessModel.open,
-						PublishModel.open);
-				debugMSG("done!");
-			} catch (NoResponseException | XMPPErrorException
-					| NotConnectedException e) {
-				// TODO Auto-generated catch block
-				debugMSG("fail!");
-				e.printStackTrace();
-			}
+		try {
+			con.createNode(typedNodeName, device, AccessModel.open, PublishModel.open);
+			debugMSG("done!");
+		} catch (NoResponseException | XMPPErrorException | NotConnectedException e) {
+			// TODO Auto-generated catch block
+			debugMSG("fail!");
+			e.printStackTrace();
+		}
 	}
 
 	public static void main(String[] args) {
@@ -482,20 +451,19 @@ public class CarSensorCCH implements SoxEventListener {
 		CarSensorCCH cch = new CarSensorCCH(args);
 		while (true) {
 			try {
-				Thread.sleep(1000*60);
+				Thread.sleep(1000 * 60);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			};
+			}
+			;
 		}
 	}
 
 	protected void parseOptions(String[] args) {
 		if (args.length == 0) {
-			System.err
-					.println("Usage: java "
-							+ CLASS_NAME
-							+ " -f <config> -s <soxServer> -u <soxUser> -p <soxPasswd> -d <soxCCHDevice> -t <sensorDeviceTable> -debug <true/flase>");
+			System.err.println("Usage: java " + CLASS_NAME
+					+ " -f <config> -s <soxServer> -u <soxUser> -p <soxPasswd> -d <soxCCHDevice> -t <sensorDeviceTable> -debug <true/flase>");
 			System.exit(1);
 		}
 		for (int i = 0; i < args.length; i++) {
@@ -523,10 +491,8 @@ public class CarSensorCCH implements SoxEventListener {
 				}
 			} else {
 				System.err.println("ERROR: invalid option " + args[i]);
-				System.err
-						.println("Usage: java "
-								+ CLASS_NAME
-								+ " -f <config> -s <soxServer> -u <soxUser> -p <soxPasswd> -d <soxCCHDevice> -t <sensorDeviceTable> -debug <true/flase>");
+				System.err.println("Usage: java " + CLASS_NAME
+						+ " -f <config> -s <soxServer> -u <soxUser> -p <soxPasswd> -d <soxCCHDevice> -t <sensorDeviceTable> -debug <true/flase>");
 				System.exit(1);
 			}
 		}

@@ -20,52 +20,59 @@ public class PrintEvent implements SensorEventListener {
 
 	private static String CLASS_NAME = "SerialResponsePublisher";
 	private static boolean debug = true;
+
 	static void debugMSG(String msg) {
 		if (debug) {
 			System.out.println("[" + CLASS_NAME + "] " + msg);
 		}
 	}
-	static void done(){
+
+	static void done() {
 		debugMSG("Done...");
 	}
-	static void failed(){
+
+	static void failed() {
 		debugMSG("Failed...");
 	}
-	/* (non-Javadoc)
-	 * @see jp.ac.keio.sfc.ht.carsensor.SensorEventListener#handleSensorEvent(jp.ac.keio.sfc.ht.carsensor.SensorEvent)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * jp.ac.keio.sfc.ht.carsensor.SensorEventListener#handleSensorEvent(jp.ac.
+	 * keio.sfc.ht.carsensor.SensorEvent)
 	 */
 	@Override
 	public void handleSensorEvent(SensorEvent ev) {
-		//if(ev.getEventType() == SensorCMD.EVENT_DATA_C){
-			//System.out.println("PM2.5=" + ev.getDatas().get("PM2.5"));
-			//String gpsData = "";
-			/*for(Map.Entry<String, String> entry : ev.getDatas().entrySet()){
-				gpsData+=entry.getValue();
-			}
-			
-			*/
-			//System.out.println(ev.getDatas().get("GPS Sentence"));
-			System.out.println(ev);
-		//}
-		
+		// if(ev.getEventType() == SensorCMD.EVENT_DATA_C){
+		// System.out.println("PM2.5=" + ev.getDatas().get("PM2.5"));
+		// String gpsData = "";
+		/*
+		 * for(Map.Entry<String, String> entry : ev.getDatas().entrySet()){
+		 * gpsData+=entry.getValue(); }
+		 * 
+		 */
+		// System.out.println(ev.getDatas().get("GPS Sentence"));
+		System.out.println(ev);
+		// }
 
 	}
-	public PrintEvent(){
+
+	public PrintEvent() {
 		this(false);
 	}
-	public PrintEvent(boolean _debug){
+
+	public PrintEvent(boolean _debug) {
 		this.debug = _debug;
 		SensorSerialReader sensor = null;
 		String portPath = "/dev/sensor";
-		//String portPath = "/dev/tty.usbmodem1411";
-		
-		
-		
-		//System.out.println("Starting Sensor....");
+		// String portPath = "/dev/tty.usbmodem1411";
+
+		// System.out.println("Starting Sensor....");
 		try {
-			debugMSG("Connecting to serial port " + portPath+ "...");
+			debugMSG("Connecting to serial port " + portPath + "...");
 			sensor = new SensorSerialReader(portPath, false);
-			//sensor = new SensorSerialReaderTest(portPath, false);
+			// sensor = new SensorSerialReaderTest(portPath, false);
 			done();
 			sensor.stopSensor();
 			debugMSG("Add sensor event listener...");
@@ -79,27 +86,23 @@ public class PrintEvent implements SensorEventListener {
 			Thread.sleep(1000);
 			System.out.print(sensor);
 			debugMSG("Start sensing...");
-			//sensor.startSensor();
+			// sensor.startSensor();
 			sensor.startSensorWithoutFan();
 			done();
-			Thread.sleep(1000*60);						
-			
+			Thread.sleep(1000 * 60);
 
-			
 			sensor.stopSensor();
-			
-			Thread.sleep(1000);	
+
+			Thread.sleep(1000);
 			debugMSG("Sensing is stopped...");
-			
-			//sensor.getGPSStatus();
-			
+
+			// sensor.getGPSStatus();
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			failed();
 			e.printStackTrace();
 		}
-
-		
 
 	}
 
