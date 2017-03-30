@@ -14,9 +14,9 @@ import java.nio.file.Paths;
 
 public class SIMCard implements Closeable {
 
-	static private String phoneNumber=null;
-	static private String ICCID=null;
-	//private String IMEI;
+	static private String phoneNumber = null;
+	static private String ICCID = null;
+	// private String IMEI;
 	private static String SIMInfoFile = "/tmp/.flags/.sim_exist";
 	private BufferedReader reader = null;
 	private static boolean debug = false;
@@ -29,13 +29,12 @@ public class SIMCard implements Closeable {
 		reader = Files.newBufferedReader(path);
 	}
 
-	public static String getPhoneNumber(String _SIMFile, boolean _debug)
-			throws Exception {
+	public static String getPhoneNumber(String _SIMFile, boolean _debug) throws Exception {
 		debug = _debug;
-		if(phoneNumber != null){
+		if (phoneNumber != null) {
 			return phoneNumber;
 		}
-			
+
 		SIMCard sim = null;
 		String phoneNumber = null;
 		try {
@@ -57,32 +56,39 @@ public class SIMCard implements Closeable {
 
 		return phoneNumber;
 	}
-	public static String getICCID(String _SIMFile, boolean _debug) throws Exception{
-		getPhoneNumber(_SIMFile,_debug);
-		return  ICCID;
+
+	public static String getICCID(String _SIMFile, boolean _debug) throws Exception {
+		getPhoneNumber(_SIMFile, _debug);
+		return ICCID;
 	}
-	public static String getICCID(String _SIMFile) throws Exception{
-		return  getICCID(_SIMFile,false);
+
+	public static String getICCID(String _SIMFile) throws Exception {
+		return getICCID(_SIMFile, false);
 	}
-	public static String getICCID( boolean _debug ) throws Exception{
-		return  getICCID(SIMInfoFile,_debug);
+
+	public static String getICCID(boolean _debug) throws Exception {
+		return getICCID(SIMInfoFile, _debug);
 	}
-	public static String getICCID() throws Exception{
-		return  getICCID(SIMInfoFile,false);
+
+	public static String getICCID() throws Exception {
+		return getICCID(SIMInfoFile, false);
 	}
-	public static String getSIMInfo(){
+
+	public static String getSIMInfo() {
 		return getSIMInfo(false);
 	}
-	public static String getSIMInfo(boolean _debug){
+
+	public static String getSIMInfo(boolean _debug) {
 		try {
-			return "ICCID: "+ getICCID(_debug)+",CNUM: "+getPhoneNumber(_debug);
+			return "ICCID: " + getICCID(_debug) + ",CNUM: " + getPhoneNumber(_debug);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return "SIM information is unavailble!";
-		} 
-		
+		}
+
 	}
+
 	public static String getPhoneNumber(boolean _debug) throws Exception {
 		return getPhoneNumber(null, _debug);
 	}
@@ -116,13 +122,11 @@ public class SIMCard implements Closeable {
 					String[] numSentence = resp[1].split("\"", 3);
 					phoneNumber = numSentence[1];
 					if (debug) {
-						System.out
-								.println("[SIMCard]: Phone number sentence split");
+						System.out.println("[SIMCard]: Phone number sentence split");
 						for (String i : numSentence) {
 							System.out.println(i);
 						}
-						System.out.println("[SIMCard]: Phone number obtained "
-								+ phoneNumber);
+						System.out.println("[SIMCard]: Phone number obtained " + phoneNumber);
 					}
 					continue;
 				}
@@ -131,8 +135,7 @@ public class SIMCard implements Closeable {
 					ICCID = resp[1];
 					if (debug) {
 
-						System.out.println("[SIMCard]: Phone ICCID obtained "
-								+ phoneNumber);
+						System.out.println("[SIMCard]: Phone ICCID obtained " + phoneNumber);
 					}
 					continue;
 				}

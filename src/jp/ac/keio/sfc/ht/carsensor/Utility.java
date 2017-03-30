@@ -27,18 +27,20 @@ public class Utility {
 		}
 		return timestamp;
 	}
-	public static long getUNIXTime(String timeStamp) throws ParseException{
-		
-		timeStamp = timeStamp.substring(0, timeStamp.length()-6);
+
+	public static long getUNIXTime(String timeStamp) throws ParseException {
+
+		timeStamp = timeStamp.substring(0, timeStamp.length() - 6);
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 		df.setTimeZone(TimeZone.getDefault());
 		Date date = null;
-		
+
 		date = df.parse(timeStamp);
 
 		return date.getTime();
-		
+
 	}
+
 	public static String getFormatedTimestamp(long time) {
 		String timestamp = "";
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
@@ -55,14 +57,13 @@ public class Utility {
 		}
 		return timestamp;
 	}
-	public static void reverseBytes(byte[] a)
-	{
-	    int l = a.length;
-	    for (int j = 0; j < l / 2; j++)
-	    {
-	        byte temp = a[j];
-	        a[j] = a[l - j - 1];
-	        a[l - j - 1] = temp;
-	    }
+
+	public static void reverseBytes(byte[] a) {
+		int l = a.length;
+		for (int j = 0; j < l / 2; j++) {
+			byte temp = a[j];
+			a[j] = a[l - j - 1];
+			a[l - j - 1] = temp;
+		}
 	}
 }

@@ -58,9 +58,15 @@ public class CreateSoxDevice {
 		 */
 		for (int i = 0; i <= 100; i++) {
 
+<<<<<<< HEAD
+			// String deviceName = "carsensor"+String.format("%03d",
+			// i)+"_100Hz";
+			String deviceName = "carsensor" + String.format("%03d", i);
+=======
 			 String deviceName = "carsensor"+String.format("%03d",
 			 i)+"_100Hz";
 			//String deviceName = "carsensor" + String.format("%03d", i)
+>>>>>>> refs/remotes/origin/master
 			createNewTypedDevice(deviceName);
 		}
 	}

@@ -31,20 +31,18 @@ public class PrintNodeList {
 			e.printStackTrace();
 		}
 	}
-public PrintNodeList() throws SmackException, IOException, XMPPException {
-		
-		
+
+	public PrintNodeList() throws SmackException, IOException, XMPPException {
+
 		SoxConnection con;
-		con = new SoxConnection("soxfujisawa.ht.sfc.keio.ac.jp","guest","miroguest", true);
+		con = new SoxConnection("soxfujisawa.ht.sfc.keio.ac.jp", "guest", "miroguest", true);
 		List<String> nodeList = con.getAllSensorList();
 		Collections.sort(nodeList);
-		for(String node:nodeList){
+		for (String node : nodeList) {
 			System.out.println(node);
-			
+
 		}
-				
-		
-		
+
 	}
 
 }

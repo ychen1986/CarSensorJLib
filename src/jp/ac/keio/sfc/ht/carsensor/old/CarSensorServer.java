@@ -25,10 +25,10 @@ public class CarSensorServer {
 	private String soxUser = "guest";
 	private String soxPasswd = "miroguest";
 	private String sensorDeviceTable = "sensor_device.table";
-	private static  boolean CONFIG_FLAG = false;
-	private Map<String, CarSensorDecoder> sensorList = new HashMap<String, CarSensorDecoder>() ;
+	private static boolean CONFIG_FLAG = false;
+	private Map<String, CarSensorDecoder> sensorList = new HashMap<String, CarSensorDecoder>();
 	private SoxConnection soxConnection = null;
-	
+
 	public CarSensorServer(String[] args) {
 		// TODO Auto-generated constructor stub
 		parseOptions(args);
@@ -36,6 +36,7 @@ public class CarSensorServer {
 		connectToSox();
 		loadSensors();
 	}
+
 	private void loadSensors() {
 		InputStream input = null;
 		Properties prop = new Properties();
@@ -57,27 +58,27 @@ public class CarSensorServer {
 			}
 		}
 
-		for(Object value : prop.values()){
+		for (Object value : prop.values()) {
 			String rawDataSensor = (String) value;
-			if(sensorList.containsKey(rawDataSensor)){
+			if (sensorList.containsKey(rawDataSensor)) {
 				continue;
 			}
-			if(!rawDataSensor.matches("([a-zA-Z]+)(\\d+)")){
+			if (!rawDataSensor.matches("([a-zA-Z]+)(\\d+)")) {
 				continue;
 			}
-			debugMSG("Add new sensor "+ rawDataSensor +" to the decoding list");
+			debugMSG("Add new sensor " + rawDataSensor + " to the decoding list");
 			String sourceName = rawDataSensor;
-			
+
 			String destinationName = CarSensorCCH.typedDeviceName(rawDataSensor);
-			
+
 			SoxDevice sourceDevice = null, destinationDevice = null;
-			
-			for (int i = 1; i <= 5; i++){
+
+			for (int i = 1; i <= 5; i++) {
 				try {
-					if(i == 1){
-						debugMSG("Create source soxdevice "+sourceName);
-					}else{
-						debugMSG("Retry to create source soxdevice "+sourceName);
+					if (i == 1) {
+						debugMSG("Create source soxdevice " + sourceName);
+					} else {
+						debugMSG("Retry to create source soxdevice " + sourceName);
 					}
 					sourceDevice = new SoxDevice(soxConnection, sourceName);
 					debugMSG("done");
@@ -86,15 +87,15 @@ public class CarSensorServer {
 					// TODO Auto-generated catch block
 					debugMSG("fail");
 					e.printStackTrace();
-					
+
 				}
 			}
-			for (int i = 1; i <= 5; i++){
+			for (int i = 1; i <= 5; i++) {
 				try {
-					if(i == 1){
-						debugMSG("Create destiantion soxdevice "+destinationName);
-					}else{
-						debugMSG("Retry to create destiantion soxdevice "+destinationName);
+					if (i == 1) {
+						debugMSG("Create destiantion soxdevice " + destinationName);
+					} else {
+						debugMSG("Retry to create destiantion soxdevice " + destinationName);
 					}
 					destinationDevice = new SoxDevice(soxConnection, destinationName);
 					debugMSG("done");
@@ -105,22 +106,20 @@ public class CarSensorServer {
 					e.printStackTrace();
 				}
 			}
-			
-			if(sourceDevice != null && destinationDevice != null){
+
+			if (sourceDevice != null && destinationDevice != null) {
 				debugMSG("Create decoder");
-				CarSensorDecoder decoder = new  CarSensorDecoder(sourceDevice, destinationDevice,debug);
+				CarSensorDecoder decoder = new CarSensorDecoder(sourceDevice, destinationDevice, debug);
 				debugMSG("done.");
 				sensorList.put(rawDataSensor, decoder);
 				debugMSG("done.");
 				continue;
 			}
-			
-			
+
 		}
-		
-		
-		
+
 	}
+
 	protected void parseOptions(String[] args) {
 		if (args.length == 0) {
 			return;
@@ -147,20 +146,19 @@ public class CarSensorServer {
 				}
 			} else {
 				System.err.println("ERROR: invalid option " + args[i]);
-				System.err
-						.println("Usage: java "
-								+ CLASS_NAME
-								+ " -f <config> -s <soxServer> -u <soxUser> -p <soxPasswd>  -t <sensorDeviceTable> -debug <true/flase>");
+				System.err.println("Usage: java " + CLASS_NAME
+						+ " -f <config> -s <soxServer> -u <soxUser> -p <soxPasswd>  -t <sensorDeviceTable> -debug <true/flase>");
 				System.exit(1);
 			}
 		}
 	}
-	
+
 	static void debugMSG(String msg) {
 		if (debug) {
 			System.out.println("[" + CLASS_NAME + "] " + msg);
 		}
 	}
+
 	protected void init() {
 		if (CONFIG_FLAG) {
 			debugMSG("Command line parameters are used!");
@@ -179,8 +177,7 @@ public class CarSensorServer {
 			soxServer = prop.getProperty("soxServer", soxServer);
 			soxUser = prop.getProperty("soxUser", soxUser);
 			soxPasswd = prop.getProperty("soxPasswd", soxPasswd);
-			sensorDeviceTable = prop.getProperty("sensorDeviceTable",
-					sensorDeviceTable);
+			sensorDeviceTable = prop.getProperty("sensorDeviceTable", sensorDeviceTable);
 			prop.setProperty("soxServer", soxServer);
 			prop.setProperty("soxUser", soxUser);
 			prop.setProperty("soxPasswd", soxPasswd);
@@ -201,6 +198,7 @@ public class CarSensorServer {
 		}
 
 	}
+
 	private void connectToSox() {
 
 		for (int i = 1; i <= 5; i++) {
@@ -223,20 +221,19 @@ public class CarSensorServer {
 
 		}
 
-
-
 	}
+
 	public static void main(String[] args) {
-		
+
 		CarSensorServer ser = new CarSensorServer(args);
-		while(true){
+		while (true) {
 			try {
-				Thread.sleep(1000*60);
+				Thread.sleep(1000 * 60);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 			ser.loadSensors();
 		}
 	}

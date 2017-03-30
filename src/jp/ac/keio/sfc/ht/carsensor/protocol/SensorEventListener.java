@@ -12,5 +12,5 @@ import java.util.EventListener;
  *
  */
 public interface SensorEventListener extends EventListener {
-	public abstract void handleSensorEvent( SensorEvent ev ) throws Exception;
+	public abstract void handleSensorEvent(SensorEvent ev) throws Exception;
 }
