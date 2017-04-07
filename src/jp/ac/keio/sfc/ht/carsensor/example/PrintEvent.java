@@ -71,7 +71,7 @@ public class PrintEvent implements SensorEventListener {
 		// System.out.println("Starting Sensor....");
 		try {
 			debugMSG("Connecting to serial port " + portPath + "...");
-			sensor = new SensorSerialReader(portPath, false);
+			sensor = new SensorSerialReader(portPath);
 			// sensor = new SensorSerialReaderTest(portPath, false);
 			done();
 			sensor.stopSensor();

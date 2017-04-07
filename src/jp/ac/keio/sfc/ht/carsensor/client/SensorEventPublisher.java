@@ -3,11 +3,11 @@ package jp.ac.keio.sfc.ht.carsensor.client;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.ac.keio.sfc.ht.carsensor.protocol.RawSensorData;
 import jp.ac.keio.sfc.ht.carsensor.protocol.SensorEvent;
@@ -16,12 +16,19 @@ import jp.ac.keio.sfc.ht.carsensor.serialport.SensorSerialReader;
 import jp.ac.keio.sfc.ht.carsensor.client.exceptions.*;
 
 public class SensorEventPublisher implements SensorEventListener {
-	private static boolean debug = false;
-	public static String CLASS_NAME = "SensorEventPublisher";
-	public static String SERIAL_PORT = "/dev/tty.usbmodem311";
+	static {
+        // set a system property such that Simple Logger will include timestamp
+        System.setProperty("org.slf4j.simpleLogger.showDateTime", "true");
+        // set a system property such that Simple Logger will include timestamp in the given format
+        System.setProperty("org.slf4j.simpleLogger.dateTimeFormat", "dd-MM-yy HH:mm:ss");
+        
+    }
+	final Logger logger = LoggerFactory.getLogger(SensorEventPublisher.class);
+	public static String SERIAL_PORT = "/dev/sensor";
 	public static String SERVER = "carsensor.ht.sfc.keio.ac.jp";
 	public static int PORT = 6222;
 	private SensorSerialReader sensor = null;
+	
 	private BlockingQueue<RawSensorData> dataQueue = new LinkedBlockingQueue<RawSensorData>();
 	private boolean publish = false; // if publish = true; the data read from
 										// serial port will be enqueued into
@@ -29,37 +36,18 @@ public class SensorEventPublisher implements SensorEventListener {
 										// See public void
 										// handleSensorEvent(SensorEvent ev)
 
-	/*
-	 * private static class CMDPlusTime { public CMDPlusTime(byte[] _cmd, long
-	 * _time) { cmd = _cmd; time = _time; };
-	 * 
-	 * public String toSring() { return SensorCMD.bytesToHexString(cmd) + " " +
-	 * Utility.getFormatedTimestamp(time); };
-	 * 
-	 * byte[] cmd; long time; };
-	 */
 
-	static void debugMSG(String msg) {
-		if (debug) {
-			Date now = new Date();
-			SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSS");// dd/MM/yyyy
-
-			// String strDate = sdfDate.format(now);
-
-			System.out.println("[" + sdfDate.format(now) + "] " + "[" + CLASS_NAME + "] " + msg);
-		}
-	}
 
 	private void connectToSensor() throws SensorConnectingFailedException {
 
 		try {
 
-			debugMSG("Connect to sensor...");
-			sensor = new SensorSerialReader(SERIAL_PORT, debug);
-			debugMSG("Done...");
-			debugMSG("Add sensor event listener...");
+			logger.debug("Connect to sensor...");
+			sensor = new SensorSerialReader(SERIAL_PORT);
+			logger.debug("Done...");
+			logger.debug("Add sensor event listener...");
 			sensor.addSensorEventListener(this);
-			debugMSG("Done...");
+			logger.debug("Done...");
 			return;
 		} catch (Exception e) {
 			throw new SensorConnectingFailedException("Failed to connect to " + SERIAL_PORT, e);
@@ -71,7 +59,7 @@ public class SensorEventPublisher implements SensorEventListener {
 
 		// sensor.stopSensor();
 
-		debugMSG("Initialize Sensor...");
+		logger.debug("Initialize Sensor...");
 		try {
 			sensor.getSensorInfo();
 			sensor.getVS();
@@ -93,17 +81,17 @@ public class SensorEventPublisher implements SensorEventListener {
 
 		// Thread.sleep(1000);
 		// sensor.startSensorWithoutFan();
-		debugMSG("Done!");
+		logger.debug("Done!");
 
 	}
 
-	protected static void parseOptions(String[] args) {
+	final  void parseOptions(String[] args) {
 		if (args.length == 0) {
-			System.err.println(
+			logger.error(
 					"Usage: java -jar SensorEventPublisher.jar -s <Server>  -p <Port>  -sp <serialPort> -debug <true/flase>");
 			System.exit(1);
 		}
-		debugMSG("Parse parameters...");
+		logger.debug("Parse parameters...");
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-s")) {
 				SERVER = args[++i];
@@ -111,14 +99,9 @@ public class SensorEventPublisher implements SensorEventListener {
 				PORT = Integer.parseInt(args[++i]);
 			} else if (args[i].equals("-sp")) {
 				SERIAL_PORT = args[++i];
-			} else if (args[i].equals("-debug")) {
-				String debugPara = args[++i];
-				if (debugPara.equals("true")) {
-					debug = true;
-				}
 			} else {
-				System.err.println("ERROR: invalid option " + args[i]);
-				System.err.println(
+				logger.error("ERROR: invalid option " + args[i]);
+				logger.error(
 						"Usage: java -jar SensorEventPublisher.jar -s <Server>  -p <Port>  -sp <serialPort> -debug <true/flase>");
 				System.exit(1);
 			}
@@ -131,21 +114,21 @@ public class SensorEventPublisher implements SensorEventListener {
 		// connect to the sensor's serial port and start the sensor
 
 		try {
-			debugMSG("Connect to sensors...");
+			logger.debug("Connect to sensors...");
 			connectToSensor();
-			debugMSG("Start sensing...");
+			logger.debug("Start sensing...");
 			startSensing();
-			debugMSG("Done!");
+			logger.debug("Done!");
 		} catch (SensorConnectingFailedException | SensorInitializationErrorException e2) {
 			// TODO Auto-generated catch block
-			e2.printStackTrace();
+			logger.error("Connection to sensor failed.",e2);
 			reboot();
 
 		}
 
 		// Add 10 seconds delay as requested in the specification of
 		// sensor
-		debugMSG("Insert 10 seconds delay...");
+		logger.debug("Insert 10 seconds delay...");
 		try {
 			Thread.sleep(10 * 1000);
 		} catch (InterruptedException e1) {
@@ -158,7 +141,8 @@ public class SensorEventPublisher implements SensorEventListener {
 
 		int reconNo = 0;
 		while (true) {// 1st Loop. If network connection is down, reconnect it
-			if (reconNo > 10) {// if
+			if (reconNo > 10) {// Network is not connected.
+				logger.error("Network is not connected!");
 				try {
 					handlingNetworkDisconnectionEvent();
 				} catch (IOException e) {
@@ -172,14 +156,14 @@ public class SensorEventPublisher implements SensorEventListener {
 
 				// Connect to the server
 				if (reconNo == 0) {
-					System.out.print("Connect to Server " + SERVER + ":" + PORT + "...");
+					logger.info("Connect to Server " + SERVER + ":" + PORT + "...");
 
 				} else {
-					System.out.print("Reconnect to Server " + SERVER + ":" + PORT + " " + reconNo + "...");
+					logger.info("Reconnect to Server " + SERVER + ":" + PORT + " " + reconNo + "...");
 
 				}
 				socket = new Socket(SERVER, PORT);
-				System.out.println("done!");
+				logger.info("done!");
 				reconNo = 0; // Connection succeeds! Set the reconNo to 0;
 				// Create input and output streams to read from and write to the
 				// server
@@ -192,7 +176,7 @@ public class SensorEventPublisher implements SensorEventListener {
 				// No more data obtained from the sensor. It is deduced the
 				// sensor comes to a halt. Reboot!
 
-				e.printStackTrace();
+				logger.error("No more data from the sensor", e);
 				try {
 					if (out != null) {
 						out.close();
@@ -211,7 +195,7 @@ public class SensorEventPublisher implements SensorEventListener {
 
 			} catch (PublshingIOException | IOException e) {
 				// Network connection is in error. Try to reconnect the network.
-				e.printStackTrace();
+				logger.error(e.getMessage(),e);
 
 				// publish = false;
 				// dataQueue.clear();
@@ -225,7 +209,7 @@ public class SensorEventPublisher implements SensorEventListener {
 
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					logger.error(e1.getMessage(),e1);
 
 				} finally {
 					reconNo += 1; // Increase reconNo;
@@ -233,7 +217,7 @@ public class SensorEventPublisher implements SensorEventListener {
 						Thread.sleep(10000);
 					} catch (InterruptedException e1) {
 						// TODO Auto-generated catch block
-						e1.printStackTrace();
+						logger.error(e1.getMessage(),e1);
 					}
 				}
 
@@ -253,10 +237,10 @@ public class SensorEventPublisher implements SensorEventListener {
 					throw new SensorDataNotComeException(
 							"Timeout: 1 min. No data comes from the sensor" + sensor.getSerial());
 				}
-				debugMSG(data.toString());
+				logger.debug(data.toString());
 				out.writeObject(data);
 				out.flush();
-				debugMSG("Done!");
+				logger.debug("Done!");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -273,16 +257,16 @@ public class SensorEventPublisher implements SensorEventListener {
 
 	private void handlingNetworkDisconnectionEvent() throws IOException {
 		// TODO Auto-generated method stub
-		System.err.println("Netowrk connnecting failed!");
-		System.err.println("Reboot system!");
+		logger.error("Netowrk is not connected");		
 		reboot();
 		System.exit(0);
 	}
 
 	private void reboot() {
-
+		logger.error("Reboot system!");
 		Runtime runtime = Runtime.getRuntime();
 		try {
+			
 			runtime.exec("shutdown -r +1");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

@@ -11,17 +11,13 @@ import java.util.TooManyListenersException;
 
 public class SensorSerialReaderTest extends SensorSerialReader {
 
-	public SensorSerialReaderTest(String _portName, boolean _debuggable) throws UnsupportedCommOperationException,
+	public SensorSerialReaderTest(String _portName) throws UnsupportedCommOperationException,
 			NoSuchPortException, PortInUseException, IOException, TooManyListenersException {
-		super(_portName, _debuggable);
+		super(_portName);
 		// TODO Auto-generated constructor stub
 	}
 
-	public SensorSerialReaderTest(String portName) throws UnsupportedCommOperationException, NoSuchPortException,
-			PortInUseException, IOException, TooManyListenersException {
-		super(portName);
-		// TODO Auto-generated constructor stub
-	}
+	
 
 	/*
 	 * (non-Javadoc)
