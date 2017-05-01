@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jp.ac.keio.sfc.ht.carsensor.Sensor;
-import jp.ac.keio.sfc.ht.carsensor.client.SensorEventPublisher;
 import jp.ac.keio.sfc.ht.carsensor.protocol.RawSensorData;
 import jp.ac.keio.sfc.ht.carsensor.protocol.SensorEvent;
 import jp.ac.keio.sfc.ht.carsensor.protocol.SensorEventListener;
