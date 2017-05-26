@@ -219,7 +219,7 @@ public class SensorEventPublisher implements SensorEventListener, Runnable {
 			try {
 
 				debugMSG("Connect to sensor...");
-				sensor = new SensorSerialReader(SERIAL_PORT, debug);
+				sensor = new SensorSerialReader(SERIAL_PORT);
 				debugMSG("Done...");
 				debugMSG("Add sensor event listener...");
 				sensor.addSensorEventListener(this);

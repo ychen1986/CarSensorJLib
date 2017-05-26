@@ -6,6 +6,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.ac.keio.sfc.ht.carsensor.protocol.RawSensorData;
 import jp.ac.keio.sfc.ht.carsensor.protocol.SensorEvent;
@@ -16,9 +18,11 @@ public abstract class Sensor extends SensorCMD {
 	protected String modelName;
 	protected int Vs = -100;
 	protected double VsTemp = 0.0;
-	protected boolean debuggable = false;
+	
 	protected boolean GPS_Status = false;
 
+	final Logger logger = LoggerFactory.getLogger(Sensor.class);
+	
 	public boolean isGPSAvailable() {
 		return GPS_Status;
 	}
@@ -53,7 +57,7 @@ public abstract class Sensor extends SensorCMD {
 		msg += "Model name: " + modelName + "\n";
 		msg += "Premeasured Vs value: " + Vs + "\n";
 		msg += "Premeasured temperature: " + VsTemp + "\n";
-		msg += "Debug status: " + debuggable + "\n";
+		msg += "Debug status: " + logger.isDebugEnabled() + "\n";
 		msg += "GSP status: " + GPS_Status + "\n";
 
 		return msg;
@@ -91,7 +95,7 @@ public abstract class Sensor extends SensorCMD {
 			// Thread.sleep(5000);
 		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Sensor init failed",e);
 		}
 
 	}
@@ -105,7 +109,7 @@ public abstract class Sensor extends SensorCMD {
 	}
 
 	public void getSensorInfo() throws IOException {
-		System.out.println("Get sensor machine information...");
+		logger.info("Get sensor machine information...");
 		sendCommand(GET_SENSOR_INFOMATION);
 		try {
 			Thread.sleep(1000);
@@ -117,7 +121,7 @@ public abstract class Sensor extends SensorCMD {
 	}
 
 	public void getVS() throws IOException {
-		System.out.println("Get Vs value...");
+		logger.info("Get Vs value...");
 		sendCommand(GET_VS_VALUE);
 		try {
 			Thread.sleep(1000);
@@ -129,7 +133,7 @@ public abstract class Sensor extends SensorCMD {
 	}
 
 	public void getGPSStatus() throws IOException {
-		System.out.println("Get GPS status...");
+		logger.info("Get GPS status...");
 		sendCommand(GET_GPS_STATUS);
 	}
 
@@ -138,25 +142,25 @@ public abstract class Sensor extends SensorCMD {
 	}
 
 	public void startSensorWithFan() throws IOException {
-		System.out.println("Start sensing with fan working...");
+		logger.info("Start sensing with fan working...");
 		sendCommand(START_SENSOR_WITH_FAN);
 	}
 
 	public void stopSensorWithFan() throws IOException {
-		System.out.println("Stop sensing...");
+		logger.info("Stop sensing...");
 		sendCommand(STOP_SENSOR_WITH_FAN);
 
 	}
 
 	public void startSensorWithoutFan() throws IOException {
-		System.out.println("Start sensing without fan working...");
+		logger.info("Start sensing without fan working...");
 		sendCommand(START_SENSOR_WITHOUT_FAN);
 	}
 
 	public void stopSensor() throws IOException {
-		if (debuggable) {
-			System.out.println("Stop sensing!...");
-		}
+		
+			logger.debug("Stop sensing!...");
+	
 		stopSensorWithFan();
 	}
 
@@ -202,7 +206,7 @@ public abstract class Sensor extends SensorCMD {
 		byte[] cmd = data.cmd;
 		String msg = "GPS Response:";
 		Map<String, String> datas = new HashMap<String, String>();
-		if (debuggable) {
+		if (logger.isDebugEnabled()) {
 			msg += " " + bytesToHexString(cmd);
 		}
 		msg += "\n";
@@ -227,7 +231,7 @@ public abstract class Sensor extends SensorCMD {
 	protected SensorEvent responseVS(RawSensorData data) {
 		byte[] cmd = data.cmd;
 		String msg = "Vs Response:";
-		if (debuggable) {
+		if (logger.isDebugEnabled()) {
 			msg += " " + bytesToHexString(cmd);
 		}
 		msg += "\n";
@@ -274,7 +278,7 @@ public abstract class Sensor extends SensorCMD {
 	protected SensorEvent responseINFO(RawSensorData data) {
 		byte[] cmd = data.cmd;
 		String msg = "Sensor information Response:";
-		if (debuggable) {
+		if (logger.isDebugEnabled()) {
 			msg += " " + bytesToHexString(cmd);
 		}
 		Map<String, String> datas = new HashMap<String, String>();
@@ -315,7 +319,7 @@ public abstract class Sensor extends SensorCMD {
 	protected SensorEvent responseCMD(RawSensorData data) {
 		byte[] cmd = data.cmd;
 		String msg = "Command Response:";
-		if (debuggable) {
+		if (logger.isDebugEnabled()) {
 			msg += " " + bytesToHexString(cmd);
 		}
 		msg += "\n";
@@ -351,7 +355,7 @@ public abstract class Sensor extends SensorCMD {
 		byte[] cmd = data.cmd;
 		String msg = "GPS Start Event:";
 		Map<String, String> datas = new HashMap<String, String>();
-		if (debuggable) {
+		if (logger.isDebugEnabled()) {
 			msg += " " + bytesToHexString(cmd);
 		}
 		msg += "\n";
@@ -375,7 +379,7 @@ public abstract class Sensor extends SensorCMD {
 	protected SensorEvent dataEventA(RawSensorData data) {
 		String msg = "Data Event A:";
 		byte[] cmd = data.cmd;
-		if (debuggable) {
+		if (logger.isDebugEnabled()) {
 			msg += " " + bytesToHexString(cmd);
 		}
 		msg += "\n";
@@ -551,7 +555,7 @@ public abstract class Sensor extends SensorCMD {
 		// TODO Auto-generated method stub
 		byte[] cmd = data.cmd;
 		String msg = "Data Event C:";
-		if (debuggable) {
+		if (logger.isDebugEnabled()) {
 			msg += " " + bytesToHexString(cmd);
 		}
 		msg += "\n";
@@ -591,7 +595,7 @@ public abstract class Sensor extends SensorCMD {
 	protected SensorEvent dataEventB(RawSensorData data) {
 		byte[] cmd = data.cmd;
 		String msg = "Data Event B:";
-		if (debuggable) {
+		if (logger.isDebugEnabled()) {
 			msg += " " + bytesToHexString(cmd);
 		}
 		msg += "\n";
@@ -671,9 +675,7 @@ public abstract class Sensor extends SensorCMD {
 		// String msg = "";
 
 		SensorEvent sev = null;
-		if (debuggable) {
-			System.out.println("Sensor Response Received!\n");
-		}
+		logger.debug("Sensor Response Received!\n");
 		switch (data.getCMDCode()) {
 		case RES_INFO:
 			sev = responseINFO(data);
@@ -688,11 +690,11 @@ public abstract class Sensor extends SensorCMD {
 			sev = responseGPS(data);
 			break;
 		default:
-			System.out.println("Error: Undefined response code!");
+			logger.error("Error: Undefined response code!");
 			break;
 		}
-		if (debuggable && sev != null) {
-			System.out.println(sev.getMsg());
+		if (sev != null) {
+			logger.debug(sev.getMsg());
 		}
 		return sev;
 
@@ -723,11 +725,11 @@ public abstract class Sensor extends SensorCMD {
 			sev = GPSEventSTART(data);
 			break;
 		default:
-			System.out.println("Error: Undefined response code! ");
+			logger.error("Error: Undefined response code! ");
 			break;
 		}
-		if (debuggable && sev != null) {
-			System.out.println(sev.getMsg());
+		if ( sev != null) {
+			logger.debug(sev.getMsg());
 		}
 		return sev;
 	}
