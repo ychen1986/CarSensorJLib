@@ -87,7 +87,7 @@ public class Monitor implements SoxEventListener {
 			node = args[1];
 
 		} else {
-			System.out.println("Usage: <soxserver> <nodename>");
+			System.out.println("Usage: java -jar Monitor.jar <soxserver> <nodename>");
 			System.exit(-1);
 		}
 		new Monitor(sox, node);
