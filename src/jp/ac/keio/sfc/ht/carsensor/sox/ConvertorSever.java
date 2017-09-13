@@ -97,10 +97,9 @@ public class ConvertorSever implements AutoCloseable {
 	}
 
 	public ConvertorSever(boolean _debug) {
-		// construct a connection to sox serve
+		// construct a connection to sox server
 		this.debug = _debug;
 
-		//
 
 		// Construct server socket
 
@@ -163,7 +162,7 @@ public class ConvertorSever implements AutoCloseable {
 				// ConvertorToSoxHybrid convertor = new
 				// ConvertorToSoxHybrid(connectionSocket,soxServer,soxUser,soxPasswd,debug,publish_rate);
 				// Thread thread = new Thread(convertor);
-				Runnable convertor = new ConvertorToSoxHybrid(connectionSocket, debug, publish_rate);
+				Runnable convertor = new ConvertorToSoxHybrid(connectionSocket,soxServer,soxUser,soxPasswd,debug,publish_rate);
 				executor.execute(convertor);
 				debugMSG("done!");
 
@@ -179,13 +178,13 @@ public class ConvertorSever implements AutoCloseable {
 
 	public static void connectToSoxDevices(int no, int dps, String _soxServer, String _soxUser, String _soxPasswd) {
 
-		// ExecutorService executor = Executors.newFixedThreadPool(10);
+		 ExecutorService executor = Executors.newFixedThreadPool(10);
 		SoxConnection[] cons = new SoxConnection[(no + dps - 1) / dps];
 		try {
 			for (int i = 0; i < cons.length; i++) {
 
-				// cons[i] = new SoxConnection(_soxServer, _soxUser, _soxPasswd,
-				// false);
+				 //cons[i] = new SoxConnection(_soxServer, _soxUser, _soxPasswd,
+				 //false);
 				cons[i] = new SoxConnection(_soxServer, false);
 
 			}
@@ -194,22 +193,19 @@ public class ConvertorSever implements AutoCloseable {
 			e.printStackTrace();
 			System.exit(-1);
 		}
-		/*
-		 * for (int i = 0; i < no; i++){ // create all the required sox devices
-		 * 
-		 * // debugMSG("Creat convertor thread..." + i); // ConvertorToSoxHybrid
-		 * convertor = new
-		 * ConvertorToSoxHybrid(null,soxServer,soxUser,soxPasswd,debug,
-		 * publish_rate); // Thread thread = new Thread(convertor); //
-		 * convertorMap.put("", thread); // debugMSG("done!");
-		 * 
-		 * String deviceName =
-		 * ConvertorToSoxHybrid.sensorNaming(String.format("%03d",i));
-		 * SoxConnection con = cons[i / dps]; Runnable connector1 = new
-		 * DeviceConnector(con,deviceName); Runnable connector2 = new
-		 * DeviceConnector(con,deviceName+"_100Hz");
-		 * executor.execute(connector1); executor.execute(connector2); }
-		 */
+		
+		 for (int i = 0; i < no; i++){ // create all the required sox devices
+		  
+		 // debugMSG("Creat convertor thread..." + i); // ConvertorToSoxHybrid
+		  
+		  String deviceName = ConvertorToSoxHybrid.sensorNaming(String.format("%03d",i));
+		  SoxConnection con = cons[i / dps]; 
+		  Runnable connector1 = new DeviceConnector(con,deviceName); 
+		  Runnable connector2 = new DeviceConnector(con,deviceName+"_100Hz");
+		  executor.execute(connector1); 
+		  executor.execute(connector2); 
+		  }
+		 
 
 	}
 
