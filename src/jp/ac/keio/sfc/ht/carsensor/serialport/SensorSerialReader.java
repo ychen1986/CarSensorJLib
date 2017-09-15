@@ -27,14 +27,22 @@ import jp.ac.keio.sfc.ht.carsensor.protocol.SensorEventListener;
 public class SensorSerialReader extends Sensor implements SerialPortEventListener, AutoCloseable, Runnable {
 
 	final Logger logger = LoggerFactory.getLogger(SensorSerialReader.class);
-	final public int TIME_OUT = 10000;
-	final public int BAUD_RATE = 115200;
+	final private int TIME_OUT = 10000;
+	final private int BAUD_RATE = 115200;
 	protected InputStream in;
 	protected OutputStream out;
 	SerialPort serialPort = null;
 	private List<SensorEventListener> sensorEventListenerList = new LinkedList<SensorEventListener>();
 	private BlockingQueue<RawSensorData> rawSensorDataQueue = new LinkedBlockingQueue<RawSensorData>();
 
+	public boolean isEmptyDataQueue(){
+		return rawSensorDataQueue.isEmpty();
+	}
+	public void clearDataQueue(){
+		logger.debug("Clear rawSensorDataQueue.");
+		rawSensorDataQueue.clear();
+	}
+	
 	public SensorSerialReader(String _portName) throws UnsupportedCommOperationException,
 			NoSuchPortException, PortInUseException, IOException, TooManyListenersException {
 

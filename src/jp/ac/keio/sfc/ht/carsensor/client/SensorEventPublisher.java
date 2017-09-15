@@ -3,6 +3,7 @@ package jp.ac.keio.sfc.ht.carsensor.client;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.TooManyListenersException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -42,12 +43,10 @@ public class SensorEventPublisher implements SensorEventListener {
 
 		try {
 
-			logger.debug("Connect to sensor...");
+			logger.info("Connect to sensor...");
 			sensor = new SensorSerialReader(SERIAL_PORT);
-			logger.debug("Done...");
-			logger.debug("Add sensor event listener...");
-			sensor.addSensorEventListener(this);
-			logger.debug("Done...");
+			logger.info("Done...");
+
 			return;
 		} catch (Exception e) {
 			throw new SensorConnectingFailedException("Failed to connect to " + SERIAL_PORT, e);
@@ -59,14 +58,59 @@ public class SensorEventPublisher implements SensorEventListener {
 
 		// sensor.stopSensor();
 
-		logger.debug("Initialize Sensor...");
+		logger.info("Initialize Sensor...");
+		
+		//if sensor.
+		
 		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
+		if(!sensor.isEmptyDataQueue()){
+			logger.info("Sensor running detected!");
+			try {
+				sensor.stopSensor();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				throw new SensorInitializationErrorException("Stop sensor failed.", e);
+				
+			}
+			logger.error("Detect sensor running!");
+			
+			sensor.clearDataQueue();
+			
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		
+		logger.debug("Add sensor event listener...");
+		
+		try {
+			sensor.addSensorEventListener(this);
+		} catch (TooManyListenersException e1) {
+			// TODO Auto-generated catch block
+			throw new SensorInitializationErrorException("Add sensor event listener failes.", e1);
+		}
+		logger.debug("Done...");
+		
+		
+		try {
+			
+			
 			sensor.getSensorInfo();
 			sensor.getVS();
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			throw new SensorInitializationErrorException("Otaining Sensor Information failed!", e);
+			throw new SensorInitializationErrorException("Obtaining Sensor Information failed!", e);
 		}
 		if (sensor.isInitialized()) {
 			try {
@@ -85,10 +129,11 @@ public class SensorEventPublisher implements SensorEventListener {
 
 	}
 
+	static String USAGE_STRING="Usage: java -jar SensorEventPublisher.jar -s <Server>  -p <Port>  -sp <serialPort> -debug <true/flase>";
+	
 	final  void parseOptions(String[] args) {
 		if (args.length == 0) {
-			logger.error(
-					"Usage: java -jar SensorEventPublisher.jar -s <Server>  -p <Port>  -sp <serialPort> -debug <true/flase>");
+			logger.error(USAGE_STRING);
 			System.exit(1);
 		}
 		logger.debug("Parse parameters...");
@@ -101,8 +146,7 @@ public class SensorEventPublisher implements SensorEventListener {
 				SERIAL_PORT = args[++i];
 			} else {
 				logger.error("ERROR: invalid option " + args[i]);
-				logger.error(
-						"Usage: java -jar SensorEventPublisher.jar -s <Server>  -p <Port>  -sp <serialPort> -debug <true/flase>");
+				logger.error(USAGE_STRING);
 				System.exit(1);
 			}
 		}
