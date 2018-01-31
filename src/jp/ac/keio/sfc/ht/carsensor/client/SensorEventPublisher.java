@@ -207,6 +207,7 @@ public class SensorEventPublisher implements SensorEventListener {
 
 				}
 				socket = new Socket(SERVER, PORT);
+				socket.setSoTimeout(1000*10);
 				logger.info("done!");
 				reconNo = 0; // Connection succeeds! Set the reconNo to 0;
 				// Create input and output streams to read from and write to the
