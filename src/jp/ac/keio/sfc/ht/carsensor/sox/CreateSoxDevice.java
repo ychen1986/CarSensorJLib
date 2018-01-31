@@ -56,17 +56,81 @@ public class CreateSoxDevice {
 		 * createNewTypedDevice("carsensor031_replay");
 		 * createNewTypedDevice("carsensor033_replay");
 		 */
-		for (int i = 0; i <= 100; i++) {
+	for (int i = 0; i <= 100; i++) {
 
 
-			// String deviceName = "carsensor"+String.format("%03d",
-			// i)+"_100Hz";
-			String deviceName = "carsensor" + String.format("%03d", i);
+			 String deviceName = "carsensor"+String.format("%03d",
+			 i)+"_100Hz";
+			//String deviceName = "carsensor" + String.format("%03d", i);
 
 			//String deviceName = "carsensor" + String.format("%03d", i)
 
 			createNewTypedDevice(deviceName);
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// ignore
+			}
 		}
+//		
+//		String deviceName = "omimamori002";
+//		Device device = new Device();
+//		device.setId(deviceName);
+//		device.setDeviceType(DeviceType.OUTDOOR_WEATHER);
+//		device.setName(deviceName);
+/*
+		Map<String, String> omimamoriMetaDataMap = new HashMap();
+		{
+			omimamoriMetaDataMap.put("trace_record","");
+			
+			omimamoriMetaDataMap.put("CMD","");
+			omimamoriMetaDataMap.put("version","");
+			omimamoriMetaDataMap.put("tr_mac","");
+			omimamoriMetaDataMap.put("rssi","dBm");
+			omimamoriMetaDataMap.put("PAN_ID","");
+			omimamoriMetaDataMap.put("SEQ_NUM","");
+			omimamoriMetaDataMap.put("PAYLOAD_IE","");
+			omimamoriMetaDataMap.put("PAYLOAD","");
+			
+		}
+*/		
+		//List<Transducer> transducers = new ArrayList<Transducer>();
+		
+/*		for (Map.Entry<String, String> entry : omimamoriMetaDataMap.entrySet()) {
+			Transducer metaValue = new Transducer();
+			metaValue.setName(entry.getKey());
+			metaValue.setId(entry.getKey());
+			metaValue.setUnits(entry.getValue());
+			transducers.add(metaValue);
+
+		}*/
+		/*
+		 * for (String s : dataIds) { Transducer metaValue = new Transducer();
+		 * metaValue.setName(s); metaValue.setId(s); metaValue.setUnits(arg0);
+		 * transducers.add(metaValue); }
+		 */
+
+		//device.setTransducers(transducers);
+		/*try {
+
+			con.createNode(deviceName, device, AccessModel.open, PublishModel.open);
+			debugMSG("done!");
+
+			
+		} catch (NoResponseException | XMPPErrorException | NotConnectedException e) {
+			// TODO Auto-generated catch block
+			debugMSG("fail!");
+			e.printStackTrace();
+			// try {
+			// //Thread.sleep(1000);
+			// con.deleteNode("deviceName");
+			// } catch (NoResponseException | XMPPErrorException
+			// | NotConnectedException | InterruptedException e1) {
+			// // TODO Auto-generated catch block
+			// e1.printStackTrace();
+			// }
+
+		}*/
 	}
 
 	private static final Map<String, String> metaDatasMap;
@@ -150,6 +214,12 @@ public class CreateSoxDevice {
 				// TODO Auto-generated catch block
 				debugMSG("fail!");
 				e.printStackTrace();
+				try {
+					con.deleteNode(deviceName);
+				} catch (NoResponseException | XMPPErrorException | NotConnectedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				// try {
 				// //Thread.sleep(1000);
 				// con.deleteNode("deviceName");

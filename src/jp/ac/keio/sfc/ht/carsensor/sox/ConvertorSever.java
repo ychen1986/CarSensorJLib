@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.ac.keio.sfc.ht.carsensor.SensorCMD;
 import jp.ac.keio.sfc.ht.carsensor.protocol.RawSensorData;
@@ -22,7 +24,15 @@ import jp.ac.keio.sfc.ht.sox.soxlib.SoxDevice;
 public class ConvertorSever implements AutoCloseable {
 
 	// properties
-
+	static {
+        // set a system property such that Simple Logger will include timestamp
+        System.setProperty("org.slf4j.simpleLogger.showDateTime", "true");
+        // set a system property such that Simple Logger will include timestamp in the given format
+        System.setProperty("org.slf4j.simpleLogger.dateTimeFormat", "dd-MM-yy HH:mm:ss");
+        
+    }
+	
+	final static Logger logger = LoggerFactory.getLogger(ConvertorSever.class);
 	final static String SENSOR_NAMING_PREFIX = "carsensor";
 	final static int CONECTION_TIME_OUT = 1000 * 1;
 	private static int MAX_CONVERTOR_NO = 100;
@@ -51,18 +61,15 @@ public class ConvertorSever implements AutoCloseable {
 	// BlockingQueue<Socket> socketQueue = new LinkedBlockingQueue<Socket>();
 	ServerSocket welcomeSocket = null;
 
-	static final String[] SOXCLUSTER = { "nictsox-lv1.ht.sfc.keio.ac.jp", "nictsox-lv3.ht.sfc.keio.ac.jp",
-			"nictsox-lv4.ht.sfc.keio.ac.jp", "nictsox-lv5.ht.sfc.keio.ac.jp"
-
-	};
+	static final String[] SOXCLUSTER = { "nictsox-lv2.ht.sfc.keio.ac.jp"};
 
 	protected static void parseOptions(String[] args) {
 
 		String usage = "Usage: java -jar ConvertorServer.jar  -o <port> -d <deviceNoPerSoxconnection> -n <MAX_CONVERTOR_NO> -s <soxServer>  -u <soxUser> -p <soxPasswd> -r <publishRate> -debug <true/flase>";
 		if (args.length == 0) {
-			System.err.println("ERROR: arguments required!");
-			System.err.println(usage);
-			System.exit(1);
+			logger.error("ERROR: arguments required!");
+			logger.error(usage);
+			System.exit(-1);
 		}
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-s")) {
@@ -85,9 +92,9 @@ public class ConvertorSever implements AutoCloseable {
 					debug = true;
 				}
 			} else {
-				System.err.println("ERROR: invalid option " + args[i]);
-				System.err.println(usage);
-				System.exit(1);
+				logger.error("ERROR: invalid option " + args[i]);
+				logger.error(usage);
+				System.exit(-1);
 			}
 		}
 	}
@@ -104,13 +111,13 @@ public class ConvertorSever implements AutoCloseable {
 		// Construct server socket
 
 		try {
-			debugMSG("Creating new server socket at port: " + this.port);
+			logger.debug("Creating new server socket at port: " + this.port);
 			// Create a server socket
 			welcomeSocket = new ServerSocket(port);
-			debugMSG("done!");
+			logger.debug("done!");
 		} catch (IOException e2) {
 			// TODO Auto-generated catch block
-			debugMSG("fail!");
+			logger.debug("fail!");
 			e2.printStackTrace();
 			close();
 			System.exit(-1);
@@ -121,12 +128,12 @@ public class ConvertorSever implements AutoCloseable {
 		// for (int i = 0; i <= CONVERTOR_NO; i++){ // create all the required
 		// sox devices
 
-		// debugMSG("Creat convertor thread..." + i);
+		// logger.debug("Creat convertor thread..." + i);
 		// ConvertorToSoxHybrid convertor = new
 		// ConvertorToSoxHybrid(null,soxServer,soxUser,soxPasswd,debug,publish_rate);
 		// Thread thread = new Thread(convertor);
 		// convertorMap.put("", thread);
-		// debugMSG("done!");
+		// logger.debug("done!");
 
 		// }
 		connectToSoxDevices(MAX_CONVERTOR_NO, sensorPerSoxconnection, soxServer, soxUser, soxPasswd);
@@ -137,11 +144,11 @@ public class ConvertorSever implements AutoCloseable {
 
 			try {
 
-				debugMSG("Waiting for client request...");
+				logger.info("Waiting for client request...");
 
 				connectionSocket = welcomeSocket.accept();
 				// socketQueue.put(connectionSocket);
-				debugMSG("Request: " + (requestNO++) + " from " + connectionSocket.getInetAddress());
+				logger.trace("Request: " + (requestNO++) + " from " + connectionSocket.getInetAddress());
 				/*
 				 * in = new
 				 * ObjectInputStream(connectionSocket.getInputStream());
@@ -149,11 +156,11 @@ public class ConvertorSever implements AutoCloseable {
 				 * RawSensorData data = (RawSensorData) in.readObject();
 				 * 
 				 * String sensorNo = getSensorNO(data);
-				 * debugMSG("Sensor Number:" + sensorNo);
-				 * debugMSG("Creat sox device..."); SoxDevice device =
-				 * findSoxDevice(sensorNo); debugMSG("done!");
+				 * logger.debug("Sensor Number:" + sensorNo);
+				 * logger.debug("Creat sox device..."); SoxDevice device =
+				 * findSoxDevice(sensorNo); logger.debug("done!");
 				 */
-				debugMSG("Creat convertor thread...");
+				logger.info("Creat convertor thread...");
 				// connectionSocket.setSoTimeout(CONECTION_TIME_OUT);
 				// ConvertorToSox convertor = new
 				// ConvertorToSox(connectionSocket,false,publish_rate);
@@ -164,12 +171,11 @@ public class ConvertorSever implements AutoCloseable {
 				// Thread thread = new Thread(convertor);
 				Runnable convertor = new ConvertorToSoxHybrid(connectionSocket,soxServer,soxUser,soxPasswd,debug,publish_rate);
 				executor.execute(convertor);
-				debugMSG("done!");
+				logger.info("done!");
 
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
-				debugMSG("fail!");
-				e.printStackTrace();
+				logger.error("fail!",e);
 			}
 
 		}
@@ -196,7 +202,7 @@ public class ConvertorSever implements AutoCloseable {
 		
 		 for (int i = 0; i < no; i++){ // create all the required sox devices
 		  
-		 // debugMSG("Creat convertor thread..." + i); // ConvertorToSoxHybrid
+		 // logger.debug("Creat convertor thread..." + i); // ConvertorToSoxHybrid
 		  
 		  String deviceName = ConvertorToSoxHybrid.sensorNaming(String.format("%03d",i));
 		  SoxConnection con = cons[i / dps]; 
@@ -225,14 +231,14 @@ public class ConvertorSever implements AutoCloseable {
 				for (int i = 0; i < 5; i++) {
 					try {
 						if (i == 0) {
-							debugMSG("Connect to device " + deviceName + "...");
+							logger.debug("Connect to device " + deviceName + "...");
 						}
 						SoxDevice dev = new SoxDevice(con, deviceName);
-						debugMSG("done!");
+						logger.debug("done!");
 						ConvertorToSoxHybrid.publishDeviceMap.put(deviceName, dev);
 						return;
 					} catch (Exception e) {
-						debugMSG("failed!");
+						logger.debug("failed!");
 						e.printStackTrace();
 
 					}
@@ -271,16 +277,6 @@ public class ConvertorSever implements AutoCloseable {
 		new ConvertorSever(debug);
 	}
 
-	static void debugMSG(String msg) {
-		if (debug) {
-			Date now = new Date();
-			SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSS");// dd/MM/yyyy
-
-			String strDate = sdfDate.format(now);
-
-			System.out.println("[" + sdfDate.format(now) + "] " + "[" + CLASS_NAME + "] " + msg);
-		}
-	}
 
 	@Override
 	public void close() {

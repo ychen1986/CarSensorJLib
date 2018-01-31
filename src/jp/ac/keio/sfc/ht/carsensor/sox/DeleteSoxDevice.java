@@ -33,11 +33,11 @@ public class DeleteSoxDevice {
 		SoxConnection con;
 
 		for(int i=0; i<= 100; i++){
-			sensorName = prefix + String.format("%03d", i);//+"_100Hz";
-			//sensorName="carsensor049_100Hz";
+			sensorName = prefix + String.format("%03d", i);// +"_100Hz";
+			//sensorName="omimamori";
 			try {
 				System.out.println("Connecting to Sox");
-				con = new SoxConnection("nictsox-lv1.ht.sfc.keio.ac.jp","htcarsensor","carsensor", false);
+				con = new SoxConnection("nictsox-lv2.ht.sfc.keio.ac.jp","htcarsensor","carsensor", false);
 				System.out.println("Delete  device " + sensorName);
 				con.deleteNode(sensorName);
 				System.out.println("Done");

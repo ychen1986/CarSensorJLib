@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.ac.keio.sfc.ht.carsensor.protocol.CarSensorException;
 import jp.ac.keio.sfc.ht.carsensor.protocol.RawSensorData;
@@ -23,36 +25,59 @@ import jp.ac.keio.sfc.ht.sox.soxlib.SoxDevice;
 
 public class ConvertorToSoxHybrid extends ConvertorToSox {
 
-	private static final String CLASS_NAME = "ConvertorToSoxHybrid";
+		
+	final static Logger logger = LoggerFactory.getLogger(ConvertorToSoxHybrid.class);
 	SoxDevice lowSpeedDvice;
 
-	public ConvertorToSoxHybrid(Socket _socket, boolean _debug, int _publishRate) {
+	public ConvertorToSoxHybrid(Socket _socket, String _soxServer, String _soxUser, String _soxPasswd, boolean _debug,
+			int _publishRate) {
 		super();
 
 		socket = _socket;
+		soxServer = _soxServer;
+		soxUser = _soxUser;
+		soxPasswd = _soxPasswd;
 		debug = _debug;
 		publishRate = _publishRate;
 
-		if (socket != null) {
-			try {
-				inFromClient = new ObjectInputStream(socket.getInputStream());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		try {
+			inFromClient = new ObjectInputStream(socket.getInputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		// connectToDevice();
 
 	}
+	
+//	public ConvertorToSoxHybrid(Socket _socket, boolean _debug, int _publishRate) {
+//		super();
+//
+//		socket = _socket;
+//		debug = _debug;
+//		publishRate = _publishRate;
+//
+//		if (socket != null) {
+//			try {
+//				inFromClient = new ObjectInputStream(socket.getInputStream());
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+//
+//		
+//
+//	}
 
-	public ConvertorToSoxHybrid(Socket _socket, ObjectInputStream _inFromClient, SoxDevice _high, SoxDevice _low,
-			boolean _debug) {
-		super(_socket, _inFromClient, _high, _debug);
-
-		// TODO Auto-generated constructor stub
-		lowSpeedDvice = _low;
-	}
+//	public ConvertorToSoxHybrid(Socket _socket, ObjectInputStream _inFromClient, SoxDevice _high, SoxDevice _low,
+//			boolean _debug) {
+//		super(_socket, _inFromClient, _high, _debug);
+//
+//		// TODO Auto-generated constructor stub
+//		lowSpeedDvice = _low;
+//	}
 
 	@Override
 	void publish() {
@@ -66,6 +91,9 @@ public class ConvertorToSoxHybrid extends ConvertorToSox {
 		;
 		boolean hasLongitude = false;
 		boolean hasSpeed = false;
+		double sumOfPM25 = 0;
+		int count_sumOfPM25 = 0;
+		
 		while (true) {
 			try {
 				data = (RawSensorData) inFromClient.readObject();
@@ -74,7 +102,7 @@ public class ConvertorToSoxHybrid extends ConvertorToSox {
 				e.printStackTrace();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				infoMSG("Connection from " + socket.getInetAddress() + " is interrupted!");
+				logger.info("Connection from " + socket.getInetAddress() + " is interrupted!");
 				return;
 			}
 			try {
@@ -107,6 +135,9 @@ public class ConvertorToSoxHybrid extends ConvertorToSox {
 					case EVENT_DATA_C:
 
 						for (TransducerValue value : values) {
+							
+							
+							
 							if (value.getId().equals("Longitude")) {
 								hasLongitude = true;
 							}
@@ -120,21 +151,58 @@ public class ConvertorToSoxHybrid extends ConvertorToSox {
 						}
 						if (hasLongitude && hasSpeed) {// A gps Event with
 														// long/lat will incur a
-														// publishment.
+														// publishing.
 							break;
 						} else {
 							continue;
 						}
 
 					case EVENT_DATA_A:// Other data are stored into the
-										// lastVaules list
+									  // lastVaules list; PM2.5 is accmulated into sumOfPM25
 
 						lastValues = values;
+						for (TransducerValue value : values) {
+							
+							if (value.getId().equals("PM2.5")){
+								double pm25 = Double.parseDouble(value.getRawValue()); // Obtain the pm2.5 data;
+								if (pm25 < 0){
+									pm25 = 0; // if the pm2.5 data is negative, set it to 0;
+								}
+								
+								sumOfPM25 += pm25;  // accumulation 
+								count_sumOfPM25++;
+								
+							}
+							if( count_sumOfPM25 >= 100){ // if more than 100 sets of data are accumulated, clear them.
+								count_sumOfPM25 = 0;
+								sumOfPM25 = 0;
+							}
+							
+							
+						}
+						
 						continue;
 					default:
 						continue;
 
 					}
+					double avePM25 = 0;
+					if(count_sumOfPM25 != 0){
+						avePM25 = sumOfPM25/count_sumOfPM25;
+						sumOfPM25 = 0;
+						count_sumOfPM25 = 0;
+					}
+					
+					for (TransducerValue value : lastValues) {
+						
+						if (value.getId().equals("PM2.5")){
+							value.setRawValue(Double.toString(avePM25));
+							
+							
+						}						
+						
+					}
+					
 					lastValues.addAll(gpsValues);
 					lowSpeedDvice.publishValues(lastValues);
 					lastValues = null;
@@ -145,12 +213,12 @@ public class ConvertorToSoxHybrid extends ConvertorToSox {
 
 				}
 
-				debugMSG(se.toString());
+				logger.debug(se.toString());
 			} catch (CarSensorException e) {
-				System.err.println(e.getMessage());
+				logger.error(e.getMessage());
 			} catch (NotConnectedException e) {
 				// TODO Auto-generated catch block
-				System.err.println(e.getMessage());
+				logger.error(e.getMessage());
 				reconnectToDevice();
 			}
 
@@ -169,7 +237,7 @@ public class ConvertorToSoxHybrid extends ConvertorToSox {
 	@Override
 	protected void connectToDevice() {
 
-		debugMSG("Creat sox device...");
+		logger.debug("Creat sox device...");
 
 		RawSensorData data = null;
 
@@ -177,54 +245,49 @@ public class ConvertorToSoxHybrid extends ConvertorToSox {
 			data = (RawSensorData) inFromClient.readObject();
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("",e);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("",e);
 		}
 
 		sensorNo = getSensorNO(data);
-		debugMSG("Sensor Number:" + sensorNo);
+		logger.debug("Sensor Number:" + sensorNo);
 
 		try {
 			lowSpeedDvice = findSoxDevice(sensorNo);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("",e);
 		}
 		try {
 			device = findSoxDevice(sensorNo + "_100Hz");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("",e);
 		}
-		debugMSG("done!");
+		logger.debug("done!");
 	}
 
 	public static void main(String[] args) {
 
 		ServerSocket welcomeSocket = null;
 		try {
+			logger.info("Waiting at port 6222...");
 			welcomeSocket = new ServerSocket(6222);
 			Socket connectionSocket = null;
 			connectionSocket = welcomeSocket.accept();
-			String soxServer = "sox.ht.sfc.keio.ac.jp";
-			String soxDevice = "FujisawaCarSensorTyped4";
-			SoxConnection con = new SoxConnection(soxServer, false);
-			SoxDevice device = new SoxDevice(con, soxDevice);
+			String soxServer = "nictsox-lv2.ht.sfc.keio.ac.jp";
+			//String soxDevice = "car";
+			//SoxConnection con = new SoxConnection(soxServer, false);
+			//SoxDevice device = new SoxDevice(con, soxDevice);
 			ObjectInputStream out = new ObjectInputStream(connectionSocket.getInputStream());
-			Thread thread = new Thread(new ConvertorToSox(connectionSocket, out, device, true));
+			Thread thread = new Thread(new ConvertorToSoxHybrid(connectionSocket,soxServer,"guest","miroguest",true,100));
 			thread.start();
 
 		} catch (IOException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
-		} catch (SmackException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (XMPPException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

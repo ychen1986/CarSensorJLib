@@ -19,6 +19,8 @@ import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.XMPPException.XMPPErrorException;
 import org.jivesoftware.smackx.pubsub.AccessModel;
 import org.jivesoftware.smackx.pubsub.PublishModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.sf.marineapi.nmea.parser.SentenceFactory;
 import net.sf.marineapi.nmea.sentence.GGASentence;
@@ -27,6 +29,7 @@ import net.sf.marineapi.nmea.sentence.VTGSentence;
 import net.sf.marineapi.nmea.util.Position;
 import jp.ac.keio.sfc.ht.carsensor.SensorCMD;
 import jp.ac.keio.sfc.ht.carsensor.Utility;
+import jp.ac.keio.sfc.ht.carsensor.client.SensorEventPublisher;
 import jp.ac.keio.sfc.ht.carsensor.protocol.CarSensorException;
 import jp.ac.keio.sfc.ht.carsensor.protocol.RawSensorData;
 import jp.ac.keio.sfc.ht.carsensor.protocol.SensorEvent;
@@ -42,6 +45,7 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 	int publishRate = 100; // Hz 1<= publishRate <=100
 	final static int SENSOR_SAMPLE_RATE = 100; // Hz
 
+	final static Logger logger = LoggerFactory.getLogger(ConvertorToSox.class);
 	ObjectInputStream inFromClient = null;
 	Socket socket = null;
 	// SoxConnection soxConnection = null;
@@ -57,19 +61,20 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 	protected static String soxPasswd = "miroguest";
 	protected static Map<String, SoxDevice> publishDeviceMap = new HashMap<String, SoxDevice>();
 
+	
 	public ConvertorToSox() {
 		super();
 	}
 
-	public ConvertorToSox(Socket _socket, ObjectInputStream _inFromClient, SoxDevice _device, boolean _debug) {
+//	public ConvertorToSox(Socket _socket, ObjectInputStream _inFromClient, SoxDevice _device, boolean _debug) {
+//
+//		this(_socket, _inFromClient, _device, _debug, 100);
+//
+//	}
 
-		this(_socket, _inFromClient, _device, _debug, 100);
-
-	}
-
-	public ConvertorToSox(Socket _socket, boolean _debug, int _publishRate) {
-		this(_socket, "sox.ht.sfc.keio.ac.jp", "guest", "miroguest", _debug, _publishRate);
-	}
+//	public ConvertorToSox(Socket _socket, boolean _debug, int _publishRate) {
+//		this(_socket, "sox.ht.sfc.keio.ac.jp", "guest", "miroguest", _debug, _publishRate);
+//	}
 
 	public ConvertorToSox(Socket _socket, String _soxServer, String _soxUser, String _soxPasswd, boolean _debug,
 			int _publishRate) {
@@ -141,7 +146,7 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 				e.printStackTrace();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				infoMSG("Connection from " + socket.getInetAddress() + " is interrupted!");
+				logger.info("Connection from " + socket.getInetAddress() + " is interrupted!");
 				return;
 			}
 			if (data.cmd[0] != -118) {
@@ -167,7 +172,7 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 				// se.toTranducerValueList();
 
 				device.publishValues(se.toTranducerValueList());
-				debugMSG(se.toString());
+				logger.debug(se.toString());
 			} catch (CarSensorException e) {
 				System.err.println(e.getMessage());
 			} catch (NotConnectedException e) {
@@ -188,7 +193,7 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 
 	protected void connectToDevice() {
 
-		debugMSG("Creat sox device...");
+		logger.debug("Creat sox device...");
 
 		RawSensorData data = null;
 
@@ -203,7 +208,7 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 		}
 
 		sensorNo = getSensorNO(data);
-		debugMSG("Sensor Number:" + sensorNo);
+		logger.debug("Sensor Number:" + sensorNo);
 
 		try {
 			device = findSoxDevice(sensorNo);
@@ -211,7 +216,7 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		debugMSG("done!");
+		logger.debug("done!");
 	}
 
 	protected static SensorEvent parseDataEvent(RawSensorData data) throws CarSensorException {
@@ -250,16 +255,16 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 				throw new CarSensorException("[" + Utility.getFormatedTimestamp(data.time) + "]" + "[Sensor "
 						+ data.getSensorSerialNo() + "] " + "Sensor data is in error!");
 			case EVENT_DATA_C:
-				e.printStackTrace();
+				//e.printStackTrace();
 				throw new CarSensorException("[" + Utility.getFormatedTimestamp(data.time) + "]" + "[Sensor "
-						+ data.getSensorSerialNo() + "] " + "GSP data is in error!");
+						+ data.getSensorSerialNo() + "] " + "GPS data is in error!");
 			default:
 				throw (CarSensorException) e;
 			}
 
 		}
 		/*
-		 * if ( sev != null) { debugMSG(sev.getMsg()); }
+		 * if ( sev != null) { logger.debug(sev.getMsg()); }
 		 */
 		return sev;
 	}
@@ -344,7 +349,7 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 		SentenceFactory sf = SentenceFactory.getInstance();
 
 		Sentence sen = sf.createParser(gpsString);
-		try {
+		
 			if (sen.isValid()) {
 				String senid = sen.getSentenceId();
 				if (senid.equals("GGA")) {
@@ -374,16 +379,14 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 					datas.put("Cource", Double.toString(coureToGround));
 
 				} else {
-					debugMSG("Unexpected senstence type:" + senid);
+					logger.debug("Unexpected senstence type:" + senid);
 					msg += "Unexpected senstence type:" + senid + "\n";
 				}
 			} else {
-				debugMSG("Format is invalid: " + gpsString);
+				logger.debug("Format is invalid: " + gpsString);
 
 			}
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+		
 
 		return new SensorEvent(EVENT_DATA_C, cmd, msg, datas, data.time);
 
@@ -409,14 +412,14 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 		for (int i = 0; i < 5; i++) {
 			try {
 				if (i == 0) {
-					debugMSG("Connect to device " + deviceName + "...");
+					logger.debug("Connect to device " + deviceName + "...");
 				}
 				dev = new SoxDevice(connectToSox(), deviceName);
-				debugMSG("done!");
+				logger.debug("done!");
 				publishDeviceMap.put(deviceName, dev);
 				return dev;
 			} catch (Exception e) {
-				debugMSG("failed!");
+				logger.debug("failed!");
 				e.printStackTrace();
 				if (i == 0) {
 					createNewTypedDevice(deviceName);
@@ -444,19 +447,19 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 		// connect to sox server
 		for (int i = 1; i <= 5; i++) {
 			if (i == 1) {
-				debugMSG("Connect to sox server " + soxServer + "...");
+				logger.debug("Connect to sox server " + soxServer + "...");
 			} else {
-				debugMSG("Retry connect to sox server " + soxServer + "...");
+				logger.debug("Retry connect to sox server " + soxServer + "...");
 			}
 
 			try {
 				con = new SoxConnection(soxServer, soxUser, soxPasswd, false);
 
-				debugMSG("Done!");
+				logger.debug("Done!");
 				break;
 			} catch (SmackException | IOException | XMPPException e) {
 				// TODO Auto-generated catch block
-				debugMSG("Fail!");
+				logger.debug("Fail!");
 				try {
 					Thread.sleep(1000 * 3);
 				} catch (InterruptedException e1) {
@@ -498,19 +501,19 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 
 		for (int i = 0; i < 5; i++) {
 			if (i == 0) {
-				debugMSG("Create new typed device " + deviceName + "...");
+				logger.debug("Create new typed device " + deviceName + "...");
 			} else {
-				debugMSG("Create new typed device " + deviceName + "...");
+				logger.debug("Create new typed device " + deviceName + "...");
 			}
 			try {
 
 				con.createNode(deviceName, device, AccessModel.open, PublishModel.open);
-				debugMSG("done!");
+				logger.debug("done!");
 
 				return true;
 			} catch (NoResponseException | XMPPErrorException | NotConnectedException e) {
 				// TODO Auto-generated catch block
-				debugMSG("fail!");
+				logger.debug("fail!");
 				e.printStackTrace();
 				// try {
 				// //Thread.sleep(1000);
@@ -541,18 +544,18 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 		// SoxConnection soxConnection = null;
 		for (int i = 1; i <= 5; i++) {
 			if (i == 1) {
-				debugMSG("Connect to sox server " + soxServer + "...");
+				logger.debug("Connect to sox server " + soxServer + "...");
 			} else {
-				debugMSG("Retry connect to sox server " + soxServer + "...");
+				logger.debug("Retry connect to sox server " + soxServer + "...");
 			}
 
 			try {
 				soxConnection = new SoxConnection(soxServer, false);
-				debugMSG("Done!");
+				logger.debug("Done!");
 				break;
 			} catch (SmackException | IOException | XMPPException e) {
 				// TODO Auto-generated catch block
-				debugMSG("Fail!");
+				logger.debug("Fail!");
 				e.printStackTrace();
 				continue;
 			}
@@ -740,16 +743,17 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 
 		ServerSocket welcomeSocket = null;
 		try {
+			System.out.println("Waiting at port 6222...");
 			welcomeSocket = new ServerSocket(6222);
 			Socket connectionSocket = null;
 			connectionSocket = welcomeSocket.accept();
-			String soxServer = "sox.ht.sfc.keio.ac.jp";
-			String soxDevice = "FujisawaCarSensorTyped4";
+			String soxServer = "nictsox-lv2.ht.sfc.keio.ac.jp";
+			String soxDevice = "carsensor000_100Hz";
 			SoxConnection con = new SoxConnection(soxServer, false);
 			SoxDevice device = new SoxDevice(con, soxDevice);
-			ObjectInputStream out = new ObjectInputStream(connectionSocket.getInputStream());
-			Thread thread = new Thread(new ConvertorToSox(connectionSocket, out, device, true));
-			thread.start();
+			//ObjectInputStream out = new ObjectInputStream(connectionSocket.getInputStream());
+			//Thread thread = new Thread(	new ConvertorToSox(connectionSocket, "", String _soxUser, String _soxPasswd, true, 100));
+			//thread.start();
 
 		} catch (IOException e2) {
 			// TODO Auto-generated catch block
@@ -777,36 +781,18 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 
 	}
 
-	static void infoMSG(String msg) {
-		{
-			Date now = new Date();
-			SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSS");// dd/MM/yyyy
 
-			String strDate = sdfDate.format(now);
 
-			System.out.println("[" + sdfDate.format(now) + "] " + "[" + CLASS_NAME + "] " + msg);
-		}
-	}
 
-	static void debugMSG(String msg) {
-		if (debug) {
-			Date now = new Date();
-			SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSS");// dd/MM/yyyy
-
-			String strDate = sdfDate.format(now);
-
-			System.out.println("[" + sdfDate.format(now) + "] " + "[" + CLASS_NAME + "] " + msg);
-		}
-	}
 
 	@Override
 	public void run() {
 
 		connectToDevice();
 		// TODO Auto-generated method stub
-		infoMSG("Start conversion to " + device.getNodeId());
+		logger.info("Start conversion to " + device.getNodeId());
 		try {
-			socket.setSoTimeout(1000 * 60 * 2);
+			socket.setSoTimeout(1000 * 20 );
 		} catch (SocketException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -814,7 +800,7 @@ public class ConvertorToSox extends SensorCMD implements Runnable, AutoCloseable
 		publish();
 
 		try {
-			infoMSG("Stop conversion to " + device.getNodeId());
+			logger.info("Stop conversion to " + device.getNodeId());
 			close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
